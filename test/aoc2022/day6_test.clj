@@ -32,6 +32,6 @@
 
 (deftest part2-test
   (testing "part2"
-    (is (= (find-message puzzle-input) 0))
+    (is (= (find-message puzzle-input) 2950))
     )
   )

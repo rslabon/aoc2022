@@ -1,6 +1,6 @@
 (ns aoc2022.day6)
 
-(defn find-in-stream
+(defn find-unique-seq
   [data-stream unique-length]
   (loop [ids (range (- (count data-stream) unique-length))]
     (let [i (first ids)
@@ -14,9 +14,9 @@
   )
 
 (defn find-marker
-  [data-stream] (find-in-stream data-stream 4)
+  [data-stream] (find-unique-seq data-stream 4)
   )
 
 (defn find-message
-  [data-stream] (find-in-stream data-stream 14)
+  [data-stream] (find-unique-seq data-stream 14)
   )

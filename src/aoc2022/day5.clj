@@ -11,6 +11,13 @@
       nil
       item)))
 
+(defn stack-apply-line
+  [stacks stack-nr stack-line]
+  (update stacks
+          (inc stack-nr)
+          (fn [stack] (filter some? (conj stack (get-item-in-stack stack-line (inc stack-nr))))))
+  )
+
 (defn parse-stacks
   [input]
   (let [lines (str/split input #"\n")
@@ -18,10 +25,12 @@
         initial-stacks (reduce #(assoc %1 (inc %2) []) {} (range size))
         lines (drop-last lines)]
     (reduce
-      #(reduce
-         (fn [m k] (update m (inc k) (fn [v] (filter some? (conj v (get-item-in-stack %2 (inc k)))))))
-         %1
-         (range size))
+      (fn [stacks line]
+        (reduce
+          (fn [stacks stack-nr]
+            (stack-apply-line stacks stack-nr line))
+          stacks
+          (range size)))
       initial-stacks
       lines)))
 
