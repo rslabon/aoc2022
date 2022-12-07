@@ -23,23 +23,32 @@
    (let [line (first lines)]
      (if (empty? lines)
        filesystem
-       (if (str/starts-with? line "$")
-         (cond
-           (= line "$ ls") (recur (rest lines) pwd filesystem)
-           (= line "$ cd ..") (recur (rest lines) (cd pwd) filesystem)
-           (= line "$ cd /") (recur (rest lines) "/" (conj filesystem (make-file "/" true 0)))
-           ;cd <name>
-           :else (let [[_ dir-name] (re-matches #"\$ cd (\w+)" line)]
-                   (recur (rest lines) (new-path pwd dir-name) filesystem)
-                   )
-           )
-         ;ls content
-         (if (str/starts-with? line "dir")
-           (let [[_ dir-name] (re-matches #"dir ([\w.]+)" line)]
-             (recur (rest lines) pwd (conj filesystem (make-file (new-path pwd dir-name) true 0))))
-           (let [[_ file-size file-name] (re-matches #"(\d+) ([\w.]+)" line)]
-             (recur (rest lines) pwd (conj filesystem (make-file (new-path pwd file-name) false (read-string file-size)))))
-           )
+       (cond
+
+         (= line "$ ls")
+         (recur (rest lines) pwd filesystem)
+
+         (= line "$ cd ..")
+         (recur (rest lines) (cd pwd) filesystem)
+
+         (= line "$ cd /")
+         (recur (rest lines) "/" (conj filesystem (make-file "/" true 0)))
+
+         (re-matches #"dir ([\w.]+)" line)
+         (let [[_ dir-name] (re-matches #"dir ([\w.]+)" line)]
+           (recur (rest lines) pwd (conj filesystem (make-file (new-path pwd dir-name) true 0))))
+
+         (re-matches #"(\d+) ([\w.]+)" line)
+         (let [[_ file-size file-name] (re-matches #"(\d+) ([\w.]+)" line)]
+           (recur (rest lines) pwd (conj filesystem (make-file (new-path pwd file-name) false (read-string file-size)))))
+
+         (re-matches #"\$ cd (\w+)" line)
+         (let [[_ dir-name] (re-matches #"\$ cd (\w+)" line)]
+           (recur (rest lines) (new-path pwd dir-name) filesystem))
+
+         :else
+         (throw (Exception. "unknown command!"))
+
          )
        )
      )
