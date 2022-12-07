@@ -60,17 +60,17 @@
        (compute-dir-size (root pwd))
        (cond
          (= line "$ ls")
-         (parse-commands (rest lines) pwd)
+         (recur (rest lines) pwd)
 
          (= line "$ cd ..")
-         (parse-commands (rest lines) (cd pwd ".."))
+         (recur (rest lines) (cd pwd ".."))
 
          (= line "$ cd /")
-         (parse-commands (rest lines) (make-dir "/"))
+         (recur (rest lines) (make-dir "/"))
 
          (re-matches #"\$ cd (\w+)" line)
          (let [[_ dir-name] (re-matches #"\$ cd (\w+)" line)]
-           (parse-commands (rest lines) (cd pwd dir-name))
+           (recur (rest lines) (cd pwd dir-name))
            )
 
          ;ls content
@@ -78,16 +78,16 @@
          (let [[_ dir-name] (re-matches #"dir ([\w.]+)" line)
                already-exists (some #(= % dir-name) (map :name (pwd :children)))]
            (if already-exists
-             (parse-commands (rest lines) pwd)
-             (parse-commands (rest lines) (add-dir pwd dir-name)))
+             (recur (rest lines) pwd)
+             (recur (rest lines) (add-dir pwd dir-name)))
            )
 
          (re-matches #"(\d+) ([\w.]+)" line)
          (let [[_ file-size file-name] (re-matches #"(\d+) ([\w.]+)" line)
                already-exists (some #(= % file-name) (map :name (pwd :children)))]
            (if already-exists
-             (parse-commands (rest lines) pwd)
-             (parse-commands (rest lines) (add-file pwd file-name (read-string file-size)))
+             (recur (rest lines) pwd)
+             (recur (rest lines) (add-file pwd file-name (read-string file-size)))
              )
            )
 
