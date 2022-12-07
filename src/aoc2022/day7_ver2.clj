@@ -25,20 +25,20 @@
        filesystem
        (if (str/starts-with? line "$")
          (cond
-           (= line "$ ls") (parse-to-filesystem (rest lines) pwd filesystem)
-           (= line "$ cd ..") (parse-to-filesystem (rest lines) (cd pwd) filesystem)
-           (= line "$ cd /") (parse-to-filesystem (rest lines) "/" (conj filesystem (make-file "/" true 0)))
+           (= line "$ ls") (recur (rest lines) pwd filesystem)
+           (= line "$ cd ..") (recur (rest lines) (cd pwd) filesystem)
+           (= line "$ cd /") (recur (rest lines) "/" (conj filesystem (make-file "/" true 0)))
            ;cd <name>
            :else (let [[_ dir-name] (re-matches #"\$ cd (\w+)" line)]
-                   (parse-to-filesystem (rest lines) (new-path pwd dir-name) filesystem)
+                   (recur (rest lines) (new-path pwd dir-name) filesystem)
                    )
            )
          ;ls content
          (if (str/starts-with? line "dir")
            (let [[_ dir-name] (re-matches #"dir ([\w.]+)" line)]
-             (parse-to-filesystem (rest lines) pwd (conj filesystem (make-file (new-path pwd dir-name) true 0))))
+             (recur (rest lines) pwd (conj filesystem (make-file (new-path pwd dir-name) true 0))))
            (let [[_ file-size file-name] (re-matches #"(\d+) ([\w.]+)" line)]
-             (parse-to-filesystem (rest lines) pwd (conj filesystem (make-file (new-path pwd file-name) false (read-string file-size)))))
+             (recur (rest lines) pwd (conj filesystem (make-file (new-path pwd file-name) false (read-string file-size)))))
            )
          )
        )
@@ -67,7 +67,7 @@
            parent-dir (update parent-dir :size + ((first (get files-by-path path)) :size))
            files-by-path (assoc files-by-path parent-path [parent-dir])
            ]
-       (compute-sizes files-by-path (rest paths))
+       (recur files-by-path (rest paths))
        )
      )
    )
