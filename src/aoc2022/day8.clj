@@ -1,13 +1,15 @@
 (ns aoc2022.day8
   (:require [clojure.string :as str]))
 
+(def EDGE -1)
+
 (defn parse-to-grid
   [input] (mapv #(mapv read-string (str/split % #"")) (str/split input #"\n")))
 
 (defn get-item
   [grid r c] (let [size (count grid)]
                (if (or (or (< r 0) (>= r size)) (or (< c 0) (>= c size)))
-                 -1
+                 EDGE
                  (nth (nth grid r) c)
                  )))
 
@@ -50,10 +52,10 @@
   [grid r c]
   (let [size (count grid)
         item (get-item grid r c)
-        items-up (filter #(> % -1) (mapv #(get-item grid (- r %) c) (range 1 (inc size))))
-        items-down (filter #(> % -1) (mapv #(get-item grid (+ r %) c) (range 1 (inc size))))
-        items-left (filter #(> % -1) (mapv #(get-item grid r (- c %)) (range 1 (inc size))))
-        items-right (filter #(> % -1) (mapv #(get-item grid r (+ c %)) (range 1 (inc size))))
+        items-up (filter #(> % EDGE) (mapv #(get-item grid (- r %) c) (range 1 (inc size))))
+        items-down (filter #(> % EDGE) (mapv #(get-item grid (+ r %) c) (range 1 (inc size))))
+        items-left (filter #(> % EDGE) (mapv #(get-item grid r (- c %)) (range 1 (inc size))))
+        items-right (filter #(> % EDGE) (mapv #(get-item grid r (+ c %)) (range 1 (inc size))))
         viewing-score (* (viewing-distance items-up item)
                          (viewing-distance items-down item)
                          (viewing-distance items-left item)
