@@ -17,18 +17,18 @@
     )
   )
 
-(deftest get-item-test
-  (testing "get-item-grid"
-    (is (= (get-item grid 0 0) 3))
-    (is (= (get-item grid 4 0) 3))
-    (is (= (get-item grid 4 4) 0))
-    (is (= (get-item grid 0 4) 3))
-    (is (= (get-item grid 0 -1) -1))
-    (is (= (get-item grid -1 0) -1))
-    (is (= (get-item grid -1 -1) -1))
-    (is (= (get-item grid 0 5) -1))
-    (is (= (get-item grid 5 5) -1))
-    (is (= (get-item grid 5 0) -1))
+(deftest get-tree-test
+  (testing "get-tree-grid"
+    (is (= (get-tree grid 0 0) 3))
+    (is (= (get-tree grid 4 0) 3))
+    (is (= (get-tree grid 4 4) 0))
+    (is (= (get-tree grid 0 4) 3))
+    (is (= (get-tree grid 0 -1) -1))
+    (is (= (get-tree grid -1 0) -1))
+    (is (= (get-tree grid -1 -1) -1))
+    (is (= (get-tree grid 0 5) -1))
+    (is (= (get-tree grid 5 5) -1))
+    (is (= (get-tree grid 5 0) -1))
     )
   )
 

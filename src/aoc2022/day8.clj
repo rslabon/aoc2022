@@ -6,7 +6,7 @@
 (defn parse-to-grid
   [input] (mapv #(mapv read-string (str/split % #"")) (str/split input #"\n")))
 
-(defn get-item
+(defn get-tree
   [grid r c] (let [size (count grid)]
                (if (or (or (< r 0) (>= r size)) (or (< c 0) (>= c size)))
                  EDGE
@@ -14,17 +14,17 @@
                  )))
 
 (defn shorter?
-  [values value] (< (apply max values) value))
+  [other-trees tree] (< (apply max other-trees) tree))
 
 (defn visible?
   [grid r c]
   (let [size (count grid)
-        item (get-item grid r c)
-        items-up (mapv #(get-item grid (- r %) c) (range 1 (inc size)))
-        items-down (mapv #(get-item grid (+ r %) c) (range 1 (inc size)))
-        items-left (mapv #(get-item grid r (- c %)) (range 1 (inc size)))
-        items-right (mapv #(get-item grid r (+ c %)) (range 1 (inc size)))
-        visible (or (shorter? items-up item) (shorter? items-down item) (shorter? items-left item) (shorter? items-right item))]
+        tree (get-tree grid r c)
+        trees-up (mapv #(get-tree grid (- r %) c) (range 1 (inc size)))
+        trees-down (mapv #(get-tree grid (+ r %) c) (range 1 (inc size)))
+        trees-left (mapv #(get-tree grid r (- c %)) (range 1 (inc size)))
+        trees-right (mapv #(get-tree grid r (+ c %)) (range 1 (inc size)))
+        visible (or (shorter? trees-up tree) (shorter? trees-down tree) (shorter? trees-left tree) (shorter? trees-right tree))]
     visible)
   )
 
@@ -51,15 +51,15 @@
 (defn score
   [grid r c]
   (let [size (count grid)
-        item (get-item grid r c)
-        items-up (filter #(> % EDGE) (mapv #(get-item grid (- r %) c) (range 1 (inc size))))
-        items-down (filter #(> % EDGE) (mapv #(get-item grid (+ r %) c) (range 1 (inc size))))
-        items-left (filter #(> % EDGE) (mapv #(get-item grid r (- c %)) (range 1 (inc size))))
-        items-right (filter #(> % EDGE) (mapv #(get-item grid r (+ c %)) (range 1 (inc size))))
-        viewing-score (* (viewing-distance items-up item)
-                         (viewing-distance items-down item)
-                         (viewing-distance items-left item)
-                         (viewing-distance items-right item))]
+        tree (get-tree grid r c)
+        trees-up (filter #(> % EDGE) (mapv #(get-tree grid (- r %) c) (range 1 (inc size))))
+        trees-down (filter #(> % EDGE) (mapv #(get-tree grid (+ r %) c) (range 1 (inc size))))
+        trees-left (filter #(> % EDGE) (mapv #(get-tree grid r (- c %)) (range 1 (inc size))))
+        trees-right (filter #(> % EDGE) (mapv #(get-tree grid r (+ c %)) (range 1 (inc size))))
+        viewing-score (* (viewing-distance trees-up tree)
+                         (viewing-distance trees-down tree)
+                         (viewing-distance trees-left tree)
+                         (viewing-distance trees-right tree))]
     viewing-score)
   )
 
