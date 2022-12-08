@@ -91,3 +91,8 @@
                  ids))
      )
    ))
+
+(defn grid-map
+  [f grid]
+  (map-indexed (fn [row-idx row] (map-indexed (fn [column-idx _] (f row-idx column-idx)) row)) grid)
+  )
