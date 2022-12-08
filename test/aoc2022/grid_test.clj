@@ -17,3 +17,22 @@
                                    [19 14 9 4]]))
     )
   )
+
+(deftest merge-grid-test
+  (testing "merge-grid"
+    (is (= (merge-grid grid grid) [[0 1 2 3 4 0 1 2 3 4]
+                                   [5 6 7 8 9 5 6 7 8 9]
+                                   [10 11 12 13 14 10 11 12 13 14]
+                                   [15 16 17 18 19 15 16 17 18 19]]))
+    )
+  )
+
+(deftest grid-2x-test
+  (testing "grid-2x-grid"
+    (is (= (grid-2x [[1 2]
+                     [3 4]]) [[1 2 1 2]
+                              [3 4 3 4]
+                              [1 2 1 2]
+                              [3 4 3 4]]))
+    )
+  )

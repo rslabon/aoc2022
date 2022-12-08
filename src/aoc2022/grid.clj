@@ -10,3 +10,22 @@
       )
     )
   )
+
+(defn merge-grid
+  [grid1 grid2]
+  (loop [rows1 grid1
+         rows2 grid2
+         merged-grid []]
+    (if (or (empty? rows1) (empty? rows2))
+      merged-grid
+      (recur (rest rows1) (rest rows2) (conj merged-grid (into (first rows1) (first rows2))))
+      )
+    )
+  )
+
+(defn grid-2x
+  [grid]
+  (let [grid (merge-grid grid grid)
+        [top bottom] (repeat 2 grid)]
+    (into top bottom)
+    ))
