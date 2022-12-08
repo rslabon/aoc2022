@@ -11,6 +11,16 @@
     )
   )
 
+(defn rotate-left-90
+  [grid]
+  (loop [column (dec (count (first grid)))
+         rotated-grid []]
+    (if (> 0 column)
+      rotated-grid
+      (recur (dec column) (conj rotated-grid (map #(nth % column) grid)))
+      )
+    ))
+
 (defn merge-grid
   [grid1 grid2]
   (loop [rows1 grid1

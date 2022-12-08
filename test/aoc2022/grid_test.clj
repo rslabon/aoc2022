@@ -15,6 +15,20 @@
                                    [17 12 7 2]
                                    [18 13 8 3]
                                    [19 14 9 4]]))
+
+    (is (= (rotate-right-90 (rotate-right-90 (rotate-right-90 (rotate-right-90 grid)))) grid))
+    )
+  )
+
+(deftest rotate-left-90-test
+  (testing "rotate-left-90"
+    (is (= (rotate-left-90 grid) [[4 9 14 19]
+                                  [3 8 13 18]
+                                  [2 7 12 17]
+                                  [1 6 11 16]
+                                  [0 5 10 15]]))
+
+    (is (= (rotate-left-90 (rotate-left-90 (rotate-left-90 (rotate-left-90 grid)))) grid))
     )
   )
 
