@@ -55,25 +55,14 @@
 (defn head-path
   [move-lines]
   (reduce (fn [path line]
-            (cond
-
-              (re-matches #"R (\d+)" line)
-              (let [[_ n] (re-matches #"R (\d+)" line)]
-                (move-right path (read-string n)))
-
-              (re-matches #"L (\d+)" line)
-              (let [[_ n] (re-matches #"L (\d+)" line)]
-                (move-left path (read-string n)))
-
-              (re-matches #"U (\d+)" line)
-              (let [[_ n] (re-matches #"U (\d+)" line)]
-                (move-up path (read-string n)))
-
-              (re-matches #"D (\d+)" line)
-              (let [[_ n] (re-matches #"D (\d+)" line)]
-                (move-down path (read-string n)))
-              )
-            )
+            (let [[_ direction n] (re-matches #"([RLUD]) (\d+)" line)
+                  n (read-string n)]
+              (condp = direction
+                "R" (move-right path n)
+                "L" (move-left path n)
+                "U" (move-up path n)
+                "D" (move-down path n)
+                )))
           [[0 0]]
           move-lines)
   )
