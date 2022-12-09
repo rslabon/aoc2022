@@ -12,6 +12,22 @@
     (> (max dx dy) 1)
     ))
 
+(defn follow
+  [[hx hy] [tx ty]]
+  (let [dx (- hx tx)
+        dy (- hy ty)
+        dx (cond (> dx 1) (dec dx)
+                 (< dx -1) (inc dx)
+                 :else dx)
+        dy (cond (> dy 1) (dec dy)
+                 (< dy -1) (inc dy)
+                 :else dy)]
+    (if (should-tail-move? [tx ty] [hx hy])
+      [(+ tx dx) (+ ty dy)]
+      [tx ty]
+      )
+    ))
+
 (defn move-right
   ([path n]
    (let [[x y] (last path)]
@@ -39,18 +55,20 @@
 (defn tail-path
   ([path]
    (loop [path path
-          tail-path [(first path)]]
-     (if (< (count path) 3)
+          t [0 0]
+          tail-path []]
+     (if (empty? path)
        tail-path
-       (recur (rest path)
-              (if (should-tail-move? (last tail-path) (nth path 2))
-                (conj tail-path (second path))
-                tail-path
+       (let [t (follow (first path) t)]
+         (recur (rest path)
+                t
+                (if (not= (last tail-path) t)
+                  (conj tail-path t)
+                  tail-path
+                  )
                 )
-              )
-       )
-     )
-   ))
+         )
+       ))))
 
 (defn head-path
   [move-lines]
@@ -74,22 +92,6 @@
     (count (set (tail-path head-path)))
     )
   )
-
-(defn follow
-  [[hx hy] [tx ty]]
-  (let [dx (- hx tx)
-        dy (- hy ty)
-        dx (cond (> dx 1) (dec dx)
-                 (< dx -1) (inc dx)
-                 :else dx)
-        dy (cond (> dy 1) (dec dy)
-                 (< dy -1) (inc dy)
-                 :else dy)]
-    (if (should-tail-move? [tx ty] [hx hy])
-      [(+ tx dx) (+ ty dy)]
-      [tx ty]
-      )
-    ))
 
 (defn tail-9-path
   [input]
