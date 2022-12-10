@@ -1,12 +1,6 @@
 (ns aoc2022.day10
   (:require [clojure.string :as str]))
 
-(defn noop [register]
-  register)
-
-(defn addx [register x]
-  (+ register x))
-
 (defn cycle-seq
   [register commands]
   (loop [register-cycles [register]
@@ -29,9 +23,9 @@
   [input] (let [lines (str/split input #"\n")]
             (mapv (fn [line]
                     (cond
-                      (= line "noop") (fn [register] [(noop register)])
+                      (= line "noop") (fn [register] [register])
                       :else (let [[_ value] (re-matches #"addx (-?\d+)" line)]
-                              (fn [register] [register (addx register (read-string value))])
+                              (fn [register] [register (+ register (read-string value))])
                               )
                       ))
                   lines)))
