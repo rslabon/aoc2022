@@ -148,17 +148,11 @@
     monkey-business
     ))
 
-(defn gcd [a b]
-  (.gcd (biginteger a) (biginteger b)))
-
-(defn lcm [a b]
-  (/ (* a b) (gcd a b)))
-
 (defn part2
   [input]
   (let [monkeys (parse-monkeys input)
-        lcm-value (reduce lcm (mapv :divided-by monkeys))
-        activity (:activity (take-turn monkeys 10000 (fn [item] (mod item lcm-value))))
+        divided-by-all (reduce * (mapv :divided-by monkeys))
+        activity (:activity (take-turn monkeys 10000 (fn [item] (mod item divided-by-all))))
         monkey-business (apply * (take 2 (reverse (sort activity))))]
     monkey-business
     ))
