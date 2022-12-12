@@ -15,12 +15,12 @@
 (defn shortest-path
   [start end adj-fn cost-fn can-move-fn]
   (loop [pq (-> (make-pq)
-                (pq-put! start 0))
+                (pq-put start 0))
          dist-to {start 0}
          prev {start nil}]
     (if (pq-empty? pq)
       (make-path dist-to end)
-      (let [[current pq] (pq-poll! pq)]
+      (let [[current pq] (pq-poll pq)]
         (if (= current end)
           (make-path prev end)
           (let [[dist-to prev pq]
@@ -36,7 +36,7 @@
                           new-next-distance (+ existing-current-distance (cost-fn current next))]
                       (if (and (or (not (contains? dist-to next)) (< new-next-distance existing-next-distance)) (can-move-fn current next))
                         (let [dist-to (assoc dist-to next new-next-distance)
-                              pq (pq-put! pq next new-next-distance)
+                              pq (pq-put pq next new-next-distance)
                               prev (assoc prev next current)]
                           (recur (rest neighbours) dist-to prev pq)
                           )

@@ -1,36 +1,24 @@
-(ns aoc2022.pq
-  (:import (java.util HashMap PriorityQueue)))
-
-
+(ns aoc2022.pq)
 
 (defn make-pq
-  []
-  (let [priority-map (new HashMap)
-        pq {:priority-map priority-map
-            :queue        (new PriorityQueue (fn [a b] (- (.get priority-map a) (.get priority-map b))))}]
-    pq
-    ))
+  [] [])
 
 (defn pq-empty?
-  [pq] (.isEmpty (pq :queue)))
+  [pq] (empty? pq))
 
 (defn pq-size
-  [pq] (.size (pq :queue)))
+  [pq] (count pq))
 
-(defn pq-poll!
+(defn pq-poll
   [pq]
   (if (pq-empty? pq)
     nil
-    [(.poll (pq :queue)) pq]
+    [(second (first pq)) (rest pq)]
     )
   )
 
-(defn pq-put!
+(defn pq-put
   [pq item priority]
-  (let [_ (.remove (pq :queue) item)
-        _ (.put (pq :priority-map) item priority)
-        _ (.remove (pq :queue) item)
-        _ (.add (pq :queue) item)]
-      pq
-    )
-  )
+  (let [pq (filter (fn [[_ i]] (not= i item)) pq)]
+    (sort-by first (conj pq [priority item]))
+    ))
