@@ -5,10 +5,10 @@
 
 (defn convert
   [left right]
-  (let [types (map int? [left right])]
+  (let [int-types (map int? [left right])]
     (cond
-      (= types [true false]) [[left] right]
-      (= types [false true]) [left [right]]
+      (= int-types [true false]) [[left] right]
+      (= int-types [false true]) [left [right]]
       :else [left right]
       )))
 
