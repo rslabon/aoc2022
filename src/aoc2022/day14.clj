@@ -108,10 +108,10 @@
     (loop [grid grid
            n 0]
       (let [next-grid (drop-sand grid)]
-          (if (= grid next-grid)
-            n
-            (recur next-grid (inc n))
-            )
+        (if (= grid next-grid)
+          n
+          (recur next-grid (inc n))
           )
+        )
       )
     ))
