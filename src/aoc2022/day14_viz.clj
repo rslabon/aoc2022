@@ -28,14 +28,14 @@
 (defn drop-sand-by-one-step
   ([grid]
    (let [[sx sy] (:sand-source grid)
-         last (get grid :last-sand-point [sx sy])
-         sand-point (move-point-by-one-step last grid)]
+         last-sand-point (get grid :last-sand-point [sx sy])
+         current-sand-point (move-point-by-one-step last-sand-point grid)]
      (cond
-       (= last sand-point) (-> grid
-                               (dissoc :last-sand-point)
-                               (update :sand-points conj last))
-       (nil? sand-point) (dissoc grid :last-sand-point)
-       :else (assoc grid :last-sand-point sand-point)
+       (= last-sand-point current-sand-point) (-> grid
+                                                  (dissoc :last-sand-point)
+                                                  (update :sand-points conj last-sand-point))
+       (nil? current-sand-point) (dissoc grid :last-sand-point)
+       :else (assoc grid :last-sand-point current-sand-point)
        )
      ))
   )
