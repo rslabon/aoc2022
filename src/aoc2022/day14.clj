@@ -36,11 +36,22 @@
     )
   )
 
-(defn into-abyss?
-  [grid [_ y]]
-  (let [max-y (apply max (mapv second (:rock-points grid)))]
-    (> y max-y)
+(defn point-hits?
+  [grid target [_ y]]
+  (if (contains? grid target)
+    (= (target grid) y)
+    false
     )
+  )
+
+(defn into-abyss?
+  [grid p]
+  (point-hits? grid :abyss p)
+  )
+
+(defn into-floor?
+  [grid p]
+  (point-hits? grid :floor p)
   )
 
 (defn move-point
@@ -51,6 +62,7 @@
         right-down [(inc x) (inc y)]]
     (cond
       (into-abyss? grid [x y]) nil
+      (into-floor? grid [x y]) [x y]
       (can-move? down) (recur down grid)
       (can-move? left-down) (recur left-down grid)
       (can-move? right-down) (recur right-down grid)
@@ -69,9 +81,14 @@
   ([grid n] ((apply comp (repeat n drop-sand)) grid))
   )
 
+(defn grid-y-max
+  [grid] (apply max (mapv second (:rock-points grid))))
+
 (defn part1
   [input]
-  (let [grid (parse-grid [500, 0] input)]
+  (let [grid (parse-grid [500, 0] input)
+        y-max (grid-y-max grid)
+        grid (assoc grid :abyss (inc y-max))]
     (loop [grid grid
            n 0]
       (let [next-grid (drop-sand grid)]
@@ -86,20 +103,15 @@
 (defn part2
   [input]
   (let [grid (parse-grid [500, 0] input)
-        y (+ 2 (apply max (mapv second (:rock-points grid))))
-        x-min (apply min (mapv first (:rock-points grid)))
-        x-max (apply max (mapv first (:rock-points grid)))
-        floor-points (mapv (fn [i] [i y]) (range (- x-min y) (+ x-max y)))
-        grid (update grid :rock-points into floor-points)]
+        y-max (grid-y-max grid)
+        grid (assoc grid :floor (+ 1 y-max))]
     (loop [grid grid
            n 0]
       (let [next-grid (drop-sand grid)]
-        (do
-          (if (= 0 (mod n 300)) (println "turn=" n))
           (if (= grid next-grid)
             n
             (recur next-grid (inc n))
             )
-          ))
+          )
       )
     ))
