@@ -44,25 +44,24 @@
   (q/frame-rate 7)
   (q/background 200)
   (let [grid (parse-grid [500, 0] example)
-        grid (assoc grid :abyss (+ 4 (grid-y-max grid)))]
+        grid (assoc grid :abyss (+ 2 (grid-y-max grid)))]
     grid
     )
   )
 (defn draw [state]
   (let [rocks (count (:rock-points state))
         size (cond
-               (< rocks 100) 50
-               (< rocks 300) 25
+               (< rocks 100) 40
+               (< rocks 300) 20
                :else 10)]
     (q/clear)
     (q/stroke 0 0 0)
-    (q/stroke-weight (int (Math/sqrt size)))
     (q/background 200)
 
     (let [[sx sy] (:sand-source state)
           rocket-points (:rock-points state)
-          x-margin (* 3 size)
-          y-margin (* 3 size)
+          x-margin (* 6 size)
+          y-margin (* 2 size)
           x-min (apply min (mapv first rocket-points))
           rocket-points (mapv (fn [[x y]] [(- x x-min) (+ y 0)]) rocket-points)
           rocket-points (mapv (fn [[x y]] [(+ x (* x size) x-margin) (+ y (* y size) y-margin)]) rocket-points)
@@ -77,12 +76,29 @@
         (q/text-size (* size 2))
         (q/text "+" sx sy)
 
-        (q/fill 100)
+        (q/fill 0 0 0 200)
+        (q/text-size size)
+        (q/text (str "count: " (count (:sand-points state))) (+ sx (* size 4)) (- sy (/ size 2)))
+
+        (q/stroke-weight (int (Math/sqrt size)))
+        (q/fill 90 77 65)
         (mapv (fn [[x y]]
                 (q/rect x y size size)
                 ) rocket-points)
 
-        (q/fill 255 255 255)
+        (if (contains? state :floor)
+          (let [floor (:floor state)
+                floor (+ floor (* floor size) y-margin size)
+                x-max (apply max (mapv first rocket-points))
+                floor-points (for [x (range 0 (- x-max x-min))] [(+ x (* x size)) floor])]
+            (mapv (fn [[x y]]
+                    (q/rect x y size size)
+                    ) floor-points)
+            )
+          )
+
+        (q/stroke-weight (int (Math/sqrt (/ size 2))))
+        (q/fill 194 178 128)
         (mapv (fn [[x y]]
                 (q/ellipse x y size size)
                 ) sand-points)
