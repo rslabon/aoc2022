@@ -43,7 +43,7 @@
 (defn setup []
   (q/frame-rate 7)
   (q/background 200)
-  (let [grid (parse-grid [500, 0] puzzle-input)
+  (let [grid (parse-grid [500, 0] example)
         grid (assoc grid :abyss (+ 2 (grid-y-max grid)))]
     grid
     )
@@ -77,7 +77,7 @@
         (q/text "+" sx sy)
 
         (q/fill 0 0 0 200)
-        (q/text-size size)
+        (q/text-size 30)
         (q/text (str "count: " (count (:sand-points grid))) (+ sx (* size 4)) (- sy (/ size 2)))
 
         (q/stroke-weight (int (Math/sqrt size)))
