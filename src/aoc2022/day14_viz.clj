@@ -43,13 +43,13 @@
 (defn setup []
   (q/frame-rate 7)
   (q/background 200)
-  (let [grid (parse-grid [500, 0] example)
+  (let [grid (parse-grid [500, 0] puzzle-input)
         grid (assoc grid :abyss (+ 2 (grid-y-max grid)))]
     grid
     )
   )
-(defn draw [state]
-  (let [rocks (count (:rock-points state))
+(defn draw [grid]
+  (let [rocks (count (:rock-points grid))
         size (cond
                (< rocks 100) 40
                (< rocks 300) 20
@@ -58,14 +58,14 @@
     (q/stroke 0 0 0)
     (q/background 200)
 
-    (let [[sx sy] (:sand-source state)
-          rocket-points (:rock-points state)
+    (let [[sx sy] (:sand-source grid)
+          rocket-points (:rock-points grid)
           x-margin (* 6 size)
           y-margin (* 2 size)
           x-min (apply min (mapv first rocket-points))
           rocket-points (mapv (fn [[x y]] [(- x x-min) (+ y 0)]) rocket-points)
           rocket-points (mapv (fn [[x y]] [(+ x (* x size) x-margin) (+ y (* y size) y-margin)]) rocket-points)
-          sand-points (:sand-points state)
+          sand-points (:sand-points grid)
           sand-points (mapv (fn [[x y]] [(- x x-min) (+ y 0)]) sand-points)
           sand-points (mapv (fn [[x y]] [(+ x (* x size) (/ size 2) x-margin) (+ y (* y size) (/ size 2) y-margin)]) sand-points)
           sx (- sx x-min)
@@ -78,7 +78,7 @@
 
         (q/fill 0 0 0 200)
         (q/text-size size)
-        (q/text (str "count: " (count (:sand-points state))) (+ sx (* size 4)) (- sy (/ size 2)))
+        (q/text (str "count: " (count (:sand-points grid))) (+ sx (* size 4)) (- sy (/ size 2)))
 
         (q/stroke-weight (int (Math/sqrt size)))
         (q/fill 90 77 65)
@@ -88,8 +88,8 @@
 
         (q/stroke-weight (int (Math/sqrt size)))
         (q/fill 90 77 65)
-        (if (contains? state :floor)
-          (let [floor (:floor state)
+        (if (contains? grid :floor)
+          (let [floor (:floor grid)
                 floor (+ floor (* floor size) y-margin size)
                 x-max (apply max (mapv first rocket-points))
                 floor-points (for [x (range 0 (- x-max x-min))] [(+ x (* x size)) floor])]
@@ -105,8 +105,8 @@
                 (q/ellipse x y size size)
                 ) sand-points)
 
-        (if (contains? state :last-sand-point)
-          (let [[lx ly] (:last-sand-point state)
+        (if (contains? grid :last-sand-point)
+          (let [[lx ly] (:last-sand-point grid)
                 lx (- lx x-min)
                 lx (+ lx (* lx size) x-margin (/ size 2))
                 ly (+ ly (* ly size) (/ size 2) y-margin)]
@@ -119,8 +119,8 @@
     ))
 
 (defn update-state
-  [state]
-  (drop-sand-by-one-step state)
+  [grid]
+  (drop-sand-by-one-step grid)
   )
 
 (q/defsketch day14_viz
