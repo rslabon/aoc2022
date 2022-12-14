@@ -41,10 +41,10 @@
   )
 
 (defn setup []
-  (q/frame-rate 7)
+  (q/frame-rate 20)
   (q/background 200)
   (let [grid (parse-grid [500, 0] example)
-        grid (assoc grid :abyss (+ 2 (grid-y-max grid)))]
+        grid (assoc grid :abyss (+ 1 (grid-y-max grid)))]
     grid
     )
   )
