@@ -32,7 +32,7 @@
 
 (deftest part2-test
   (testing "part2"
-    ;(is (= (part2 example) 93))
+    (is (= (part2 example) 93))
     (is (= (part2 puzzle-input) 27426))
     )
   )

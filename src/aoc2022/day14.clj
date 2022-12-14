@@ -36,31 +36,6 @@
     )
   )
 
-(defn grid-to-string
-  [grid]
-  (let [rock-points (mapv (fn [p] [p "#"]) (:rock-points grid))
-        sand-points (mapv (fn [p] [p "o"]) (:sand-points grid))
-        points (vec (conj (concat rock-points sand-points) [(:sand-source grid) "+"]))
-        min-x (- (apply min (mapv first (mapv first points))) 5)
-        max-x (apply max (mapv first (mapv first points)))
-        x-size (+ 10 (- max-x min-x))
-        y-size (+ 2 (apply max (mapv second (mapv first points))))]
-    (loop [points points
-           result (vec (repeat y-size (vec (repeat x-size "."))))]
-      (if (empty? points)
-        (str/join "\n" (mapv str/join result))
-        (recur
-          (rest points)
-          (let [[p point-char] (first points)]
-            (map-indexed (fn [row-idx row] (map-indexed (fn [col-idx cell]
-                                                          (if (= [(+ col-idx min-x) row-idx] p)
-                                                            point-char
-                                                            cell
-                                                            )) row)) result)
-            )
-          )
-        ))))
-
 (defn into-abyss?
   [grid [_ y]]
   (let [max-y (apply max (mapv second (:rock-points grid)))]
@@ -122,7 +97,7 @@
         (do
           (if (= 0 (mod n 300)) (println "turn=" n))
           (if (= grid next-grid)
-            (do (println (grid-to-string grid)) n)
+            n
             (recur next-grid (inc n))
             )
           ))
