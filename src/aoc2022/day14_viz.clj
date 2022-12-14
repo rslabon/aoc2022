@@ -86,6 +86,8 @@
                 (q/rect x y size size)
                 ) rocket-points)
 
+        (q/stroke-weight (int (Math/sqrt size)))
+        (q/fill 90 77 65)
         (if (contains? state :floor)
           (let [floor (:floor state)
                 floor (+ floor (* floor size) y-margin size)
@@ -108,6 +110,8 @@
                 lx (- lx x-min)
                 lx (+ lx (* lx size) x-margin (/ size 2))
                 ly (+ ly (* ly size) (/ size 2) y-margin)]
+            (q/stroke-weight (int (Math/sqrt (/ size 2))))
+            (q/fill 194 178 128)
             (q/ellipse lx ly size size)
             )
           )
