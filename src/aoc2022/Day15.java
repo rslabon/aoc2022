@@ -140,10 +140,6 @@ public class Day15 {
         }
         List<Range> mergedRanges = new ArrayList<>(stack);
         mergedRanges.sort(Comparator.comparingInt(Range::start));
-        if (exclusiveZones.equals(mergedRanges)) {
-            return exclusiveZones;
-        } else {
-            return merge(mergedRanges);
-        }
+        return mergedRanges;
     }
 }
