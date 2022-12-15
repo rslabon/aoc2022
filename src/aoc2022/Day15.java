@@ -29,12 +29,10 @@ record Zone(Coord sensor, Coord beacon) {
     }
 
     public Range sensorRangeForRow(int j) {
-        int d = manhatan();
-        int dj = Math.abs(sensor().j() - j);
-        dj = dj * 2;
-        dj /= 2;
-        int start = sensor.i() - (d - dj);
-        int end = sensor.i() + (d - dj);
+        int manhatan = manhatan();
+        int rowDiff = Math.abs(sensor().j() - j);
+        int start = sensor.i() - (manhatan - rowDiff);
+        int end = sensor.i() + (manhatan - rowDiff);
         return new Range(start, end);
     }
 }
@@ -90,8 +88,9 @@ public class Day15 {
         for (int i = 0; i < max; i++) {
             List<Range> beaconRanges = getExclusiveZones(zones, i);
             if (beaconRanges.size() == 2) {
-                int length = beaconRanges.get(1).start() - beaconRanges.get(0).end();
-                if (length == 2) {
+                int length = beaconRanges.get(1).start() - (beaconRanges.get(0).end() + 1);
+                boolean hasSpaceForBeacon = length == 1;
+                if (hasSpaceForBeacon) {
                     int col = beaconRanges.get(0).end() + 1;
                     return ((long) col * max) + i;
                 }
@@ -128,14 +127,14 @@ public class Day15 {
         exclusiveZones.sort(Comparator.comparingInt(Range::start));
         Stack<Range> stack = new Stack<>();
         stack.push(exclusiveZones.get(0));
-        for (Range r : exclusiveZones) {
+        for (Range current : exclusiveZones) {
             Range last = stack.pop();
-            if (last.intersect(r)) {
-                Range r3 = new Range(Math.min(last.start(), r.start()), Math.max(last.end(), r.end()));
-                stack.push(r3);
+            if (last.intersect(current)) {
+                Range merged = new Range(Math.min(last.start(), current.start()), Math.max(last.end(), current.end()));
+                stack.push(merged);
             } else {
                 stack.push(last);
-                stack.push(r);
+                stack.push(current);
             }
         }
         List<Range> mergedRanges = new ArrayList<>(stack);
