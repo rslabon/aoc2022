@@ -87,9 +87,10 @@ public class Day15 {
     private static long part2(List<Zone> zones, int max) {
         for (int i = 0; i < max; i++) {
             List<Range> beaconRanges = getExclusiveZones(zones, i);
-            if (beaconRanges.size() == 2) {
-                int length = beaconRanges.get(1).start() - (beaconRanges.get(0).end() + 1);
-                boolean hasSpaceForBeacon = length == 1;
+            boolean hasSpace = beaconRanges.size() == 2;
+            if (hasSpace) {
+                int spaceSize = beaconRanges.get(1).start() - (beaconRanges.get(0).end() + 1);
+                boolean hasSpaceForBeacon = spaceSize == 1;
                 if (hasSpaceForBeacon) {
                     int col = beaconRanges.get(0).end() + 1;
                     return ((long) col * max) + i;
