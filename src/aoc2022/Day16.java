@@ -1,7 +1,8 @@
 package aoc2022;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -9,17 +10,7 @@ import java.util.stream.Collectors;
 record Pair<LEFT, RIGHT>(LEFT left, RIGHT right) {
 }
 
-class Move {
-    Valve from;
-    Valve to;
-    int path;
-    int cost;
-
-    public Move(Valve from, Valve to, int path) {
-        this.from = from;
-        this.to = to;
-        this.path = path;
-    }
+record Move(Valve from, Valve to, int path, double cost) {
 
     @Override
     public String toString() {
@@ -31,6 +22,10 @@ record Valve(String name, int rate, Set<Valve> tunnels) {
 
     public void addTunel(Valve v) {
         tunnels.add(v);
+    }
+
+    public int preasureRelease(int atMinute) {
+        return rate * (30 - atMinute + 1);
     }
 
     @Override
@@ -47,18 +42,18 @@ record Valve(String name, int rate, Set<Valve> tunnels) {
 public class Day16 {
 
     public static void main(String[] args) throws Exception {
-        String input = "Valve AA has flow rate=0; tunnels lead to valves DD, II, BB\n" +
-                "Valve BB has flow rate=13; tunnels lead to valves CC, AA\n" +
-                "Valve CC has flow rate=2; tunnels lead to valves DD, BB\n" +
-                "Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE\n" +
-                "Valve EE has flow rate=3; tunnels lead to valves FF, DD\n" +
-                "Valve FF has flow rate=0; tunnels lead to valves EE, GG\n" +
-                "Valve GG has flow rate=0; tunnels lead to valves FF, HH\n" +
-                "Valve HH has flow rate=22; tunnel leads to valve GG\n" +
-                "Valve II has flow rate=0; tunnels lead to valves AA, JJ\n" +
-                "Valve JJ has flow rate=21; tunnel leads to valve II";
+//        String input = "Valve AA has flow rate=0; tunnels lead to valves DD, II, BB\n" +
+//                "Valve BB has flow rate=13; tunnels lead to valves CC, AA\n" +
+//                "Valve CC has flow rate=2; tunnels lead to valves DD, BB\n" +
+//                "Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE\n" +
+//                "Valve EE has flow rate=3; tunnels lead to valves FF, DD\n" +
+//                "Valve FF has flow rate=0; tunnels lead to valves EE, GG\n" +
+//                "Valve GG has flow rate=0; tunnels lead to valves FF, HH\n" +
+//                "Valve HH has flow rate=22; tunnel leads to valve GG\n" +
+//                "Valve II has flow rate=0; tunnels lead to valves AA, JJ\n" +
+//                "Valve JJ has flow rate=21; tunnel leads to valve II";
 
-//        String input = Files.readString(Path.of("resources/day16.txt"));// zle 1489
+        String input = Files.readString(Path.of("resources/day16.txt"));// zle 1489
 
 
         Map<String, Set<String>> adj = new HashMap<>();
@@ -80,12 +75,10 @@ public class Day16 {
             }
         }
 
-        Valve startingValve = nodes.get("AA");
-        System.err.println("part1=" + part1(nodes, startingValve));
-//        System.err.println(cost(3, 21));
+        System.err.println("part1=" + part1(nodes));
     }
 
-    private static int part1(Map<String, Valve> valves, Valve start) {
+    private static int part1(Map<String, Valve> valves) {
         Dijkstra<Valve> dijkstra = new Dijkstra<>(current -> current.tunnels().stream().toList());
         Map<Pair<Valve, Valve>, List<Valve>> paths = new HashMap<>();
         for (Valve first : valves.values()) {
@@ -102,74 +95,91 @@ public class Day16 {
             for (Valve second : valves.values()) {
                 if (first != second) {
                     List<Valve> path = paths.get(new Pair<>(first, second));
-                    moves.add(new Move(first, second, path.size()));
+                    moves.add(new Move(first, second, path.size(), 0));
                 }
             }
         }
 
-        final AtomicReference<Valve> current = new AtomicReference<>(start);
-        int minute = 0;
-        int currentPressure = 0;
-        int totalPressure = 0;
-
-        Set<String> open = new HashSet<>();
-
-        while (minute < 30) {
-            minute++;
-            System.err.println("== Minute " + minute + " ==");
-            System.err.println("Valves " + open.stream().sorted().toList() + " are open, releasing " + currentPressure + " pressure" + " total="+totalPressure);
-
-            int rem = 30 - minute+1;
-            moves = moves.stream().filter(m -> !open.contains(m.to.name()))
-                    .filter(m->m.to.rate() > 0)
-                    .collect(Collectors.toList());
-            moves.forEach(m -> {
-                m.cost = (m.to.rate() * rem) - cost(m.path, m.to.rate());
-//                System.err.println(m +  " cost=" + m.to.rate() + "*" + rem +"=" +(m.to.rate()*rem) + "-" + cost(m.path, m.to.rate()) + " path=" + m.path);
-            });
-            moves.sort((m1, m2) -> m2.cost - m1.cost);
-            System.err.println(rem + " " + moves);
-            Optional<Move> move = moves.stream().filter(m -> m.from == current.get() && !open.contains(m.to.name())).findFirst();
-//            System.err.println(moves);
-
-            if (move.isPresent()) {
-                System.err.println("Jump from " + move.get().from.name() + " to " + move.get().to.name());
-                Valve next = move.get().to;
-                List<Valve> path = paths.get(new Pair<>(current.get(), next));
-                Valve prev = path.get(0);
-                for (Valve each : path.subList(1, path.size())) {
-                    minute++;
-                    if (minute > 30) return totalPressure;
-
-                    System.err.println(path.stream().map(Valve::name).toList());
-
-                    System.err.println("== Minute " + minute + " ==");
-                    System.err.println("Valves " + open.stream().sorted().toList() + " are open, releasing " + currentPressure + " pressure");
-                    System.err.println("You moved from " + prev.name() + " to valve " + each.name());
-                    prev = each;
-                    current.set(each);
-                }
-                current.set(next);
-                minute++;
-                if (minute > 30) return totalPressure;
-
-                System.err.println("== Minute " + minute + " ==");
-                System.err.println("Valves " + open.stream().sorted().toList() + " are open, releasing " + currentPressure + " pressure");
-                System.err.println("You open valve " + move.get().to.name());
-                currentPressure += current.get().rate();
-                totalPressure += current.get().rate() * (30 - minute-1);
-                open.add(current.get().name());
-//                current.set(next);
-            }
-        }
-        return totalPressure;
+        Valve aa = valves.get("AA");
+        State state = new State(0, 0, 0, new HashSet<>(), moves, paths);
+        return step(aa, false, state).total;
     }
 
-    private static int cost(int pathSize, int rate) {
-        int c = 0;
-        for (int i = 0; i <= pathSize; i++) {
-            c += i * rate;
+    static class State {
+        int current;
+        int total;
+        int minute;
+        Set<String> opened;
+        Map<Pair<Valve, Valve>, List<Valve>> paths;
+        List<Move> moves;
+
+        public State(int current, int total, int minute, Set<String> opened, List<Move> moves, Map<Pair<Valve, Valve>, List<Valve>> paths) {
+            this.current = current;
+            this.total = total;
+            this.minute = minute;
+            this.opened = opened;
+            this.moves = moves;
+            this.paths = paths;
         }
-        return c;
+
+        public State copy() {
+            return new State(
+                    current, total, minute, new HashSet<>(opened), new ArrayList<>(moves), paths
+            );
+        }
+
+    }
+
+    private static State step(Valve valve, boolean open, State state) {
+        if (state.minute > 30) {
+            return state;
+        }
+        state.minute++;
+//        System.err.println("\n\n== Minute " + state.minute + " ==");
+//        if (state.opened.isEmpty()) {
+//            System.err.println("No valves are open.");
+//        }
+//        if (!open) {
+//            System.err.println("You move to valve " + valve.name() + ".");
+//        }
+        if (state.minute > 30) {
+            return state;
+        }
+        if (open && !state.opened.contains(valve.name())) {
+            state.minute++;
+            state.opened.add(valve.name());
+            state.current += valve.rate();
+            state.total += valve.rate() * (30 - state.minute + 1);
+
+//            System.err.println("\n\n== Minute " + state.minute + " ==");
+//            System.err.println("Valves " + state.opened + " are open, releasing " + state.current + " pressure.");
+        }
+        if (state.minute > 30) {
+            return state;
+        }
+        Set<String> opened = state.opened;
+        int minute = state.minute;
+        List<Move> moves = state.moves.stream()
+                .filter(m -> {
+                    return m.from().equals(valve) && !opened.contains(m.to().name());
+                })
+                .map(m -> {
+                    int cost = m.to().preasureRelease(minute + m.path() + 1);
+                    return new Move(m.from(), m.to(), m.path(), cost);
+                })
+                .filter(m -> m.cost() > 0)
+                .sorted((m1, m2) -> Double.compare(m2.cost(), m1.cost())).toList();
+
+
+        State max = state.copy();
+        for (Move m : moves) {
+            State s = state.copy();
+            s.minute += m.path() - 1;
+            State ss = step(m.to(), true, s);
+            if (max.total < ss.total) {
+                max = ss;
+            }
+        }
+        return max;
     }
 }
