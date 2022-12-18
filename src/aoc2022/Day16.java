@@ -1,5 +1,7 @@
 package aoc2022;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,11 +11,6 @@ record Pair<LEFT, RIGHT>(LEFT left, RIGHT right) {
 }
 
 record Move(Valve from, Valve to, int path, double cost) {
-
-    @Override
-    public String toString() {
-        return "move " + from.name() + " -> " + to.name() + " c=" + cost;
-    }
 }
 
 record Valve(String name, int rate, Set<Valve> tunnels) {
@@ -26,28 +23,23 @@ record Valve(String name, int rate, Set<Valve> tunnels) {
     public int hashCode() {
         return toString().hashCode();
     }
-
-    @Override
-    public String toString() {
-        return "{" + name + "[" + rate + "] <" + tunnels.stream().map(Valve::name).toList() + "> }";
-    }
 }
 
 public class Day16 {
 
     public static void main(String[] args) throws Exception {
-        String input = "Valve AA has flow rate=0; tunnels lead to valves DD, II, BB\n" +
-                "Valve BB has flow rate=13; tunnels lead to valves CC, AA\n" +
-                "Valve CC has flow rate=2; tunnels lead to valves DD, BB\n" +
-                "Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE\n" +
-                "Valve EE has flow rate=3; tunnels lead to valves FF, DD\n" +
-                "Valve FF has flow rate=0; tunnels lead to valves EE, GG\n" +
-                "Valve GG has flow rate=0; tunnels lead to valves FF, HH\n" +
-                "Valve HH has flow rate=22; tunnel leads to valve GG\n" +
-                "Valve II has flow rate=0; tunnels lead to valves AA, JJ\n" +
-                "Valve JJ has flow rate=21; tunnel leads to valve II";
+//        String input = "Valve AA has flow rate=0; tunnels lead to valves DD, II, BB\n" +
+//                "Valve BB has flow rate=13; tunnels lead to valves CC, AA\n" +
+//                "Valve CC has flow rate=2; tunnels lead to valves DD, BB\n" +
+//                "Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE\n" +
+//                "Valve EE has flow rate=3; tunnels lead to valves FF, DD\n" +
+//                "Valve FF has flow rate=0; tunnels lead to valves EE, GG\n" +
+//                "Valve GG has flow rate=0; tunnels lead to valves FF, HH\n" +
+//                "Valve HH has flow rate=22; tunnel leads to valve GG\n" +
+//                "Valve II has flow rate=0; tunnels lead to valves AA, JJ\n" +
+//                "Valve JJ has flow rate=21; tunnel leads to valve II";
 
-//        String input = Files.readString(Path.of("resources/day16.txt"));// zle 1489
+        String input = Files.readString(Path.of("resources/day16.txt"));// zle 1489
 
 
         Map<String, Set<String>> adj = new HashMap<>();
@@ -73,7 +65,10 @@ public class Day16 {
         System.err.println("part2=" + part2(nodes));
     }
 
+    private static final Map<Set<String>, Integer> openValvesToMaxTotal = new HashMap<>();
+
     private static int part1(Map<String, Valve> valves) {
+        openValvesToMaxTotal.clear();
         Map<Pair<Valve, Valve>, List<Valve>> paths = createPaths(valves);
         List<Move> moves = createMoves(valves, paths);
         Valve aa = valves.get("AA");
@@ -82,11 +77,27 @@ public class Day16 {
     }
 
     private static int part2(Map<String, Valve> valves) {
+        openValvesToMaxTotal.clear();
         Map<Pair<Valve, Valve>, List<Valve>> paths = createPaths(valves);
         List<Move> moves = createMoves(valves, paths);
         Valve aa = valves.get("AA");
         State state = new State(0, 0, 0, new HashSet<>(), moves, paths);
-        return stepWithElephant(26, aa, false, state).total;
+        step(26, aa, false, state);
+
+        int max = Integer.MIN_VALUE;
+        for (Set<String> myOpen : openValvesToMaxTotal.keySet()) {
+            for (Set<String> elephantOpen : openValvesToMaxTotal.keySet()) {
+                if (myOpen.equals(elephantOpen)) {
+                    continue;
+                }
+                Set<String> intersection = new HashSet<>(myOpen);
+                intersection.retainAll(elephantOpen);
+                if (intersection.isEmpty()) {
+                    max = Math.max(max, openValvesToMaxTotal.get(myOpen) + openValvesToMaxTotal.get(elephantOpen));
+                }
+            }
+        }
+        return max;
     }
 
     private static List<Move> createMoves(Map<String, Valve> valves, Map<Pair<Valve, Valve>, List<Valve>> paths) {
@@ -143,6 +154,7 @@ public class Day16 {
 
     private static State step(int maxMinute, Valve valve, boolean open, State state) {
         if (state.minute > maxMinute) {
+            store(state);
             return state;
         }
         state.minute++;
@@ -154,6 +166,7 @@ public class Day16 {
 //            System.err.println("You move to valve " + valve.name() + ".");
 //        }
         if (state.minute > maxMinute) {
+            store(state);
             return state;
         }
         if (open && !state.opened.contains(valve.name())) {
@@ -161,11 +174,12 @@ public class Day16 {
             state.opened.add(valve.name());
             state.current += valve.rate();
             state.total += valve.rate() * (maxMinute - state.minute + 1);
-
+            store(state);
 //            System.err.println("\n\n== Minute " + state.minute + " ==");
 //            System.err.println("Valves " + state.opened + " are open, releasing " + state.current + " pressure.");
         }
         if (state.minute > maxMinute) {
+            store(state);
             return state;
         }
         Set<String> opened = state.opened;
@@ -183,63 +197,14 @@ public class Day16 {
                 max = ss;
             }
         }
+        store(max);
         return max;
     }
 
-    private static State stepWithElephant(int maxMinute, Valve valve, boolean open, State state) {
-        if (state.minute > maxMinute) {
-            return state;
+    private static void store(State state) {
+        Integer max = openValvesToMaxTotal.get(state.opened);
+        if (max == null || max < state.total) {
+            openValvesToMaxTotal.put(new HashSet<>(state.opened), state.total);
         }
-        state.minute++;
-//        System.err.println("\n\n== Minute " + state.minute + " ==");
-//        if (state.opened.isEmpty()) {
-//            System.err.println("No valves are open.");
-//        }
-//        if (!open) {
-//            System.err.println("You move to valve " + valve.name() + ".");
-//        }
-        if (state.minute > maxMinute) {
-            return state;
-        }
-        if (open && !state.opened.contains(valve.name())) {
-            state.minute++;
-            state.opened.add(valve.name());
-            state.current += valve.rate();
-            state.total += valve.rate() * (maxMinute - state.minute + 1);
-
-//            System.err.println("\n\n== Minute " + state.minute + " ==");
-//            System.err.println("Valves " + state.opened + " are open, releasing " + state.current + " pressure.");
-        }
-        if (state.minute > maxMinute) {
-            return state;
-        }
-        Set<String> opened = state.opened;
-        List<Move> moves = state.moves.stream()
-                .filter(m -> m.from().equals(valve) && !opened.contains(m.to().name()))
-                .toList();
-
-
-        State max = state.copy();
-        boolean elephant = false;
-        State step = state.copy();
-        for (Move m : moves) {
-            if (step.opened.contains(m.to().name())) {
-                continue;
-            }
-            step.minute += m.path() - 1;
-            State myStep = stepWithElephant(maxMinute, m.to(), true, step);
-            if (!elephant) {
-                elephant = true;
-                myStep.minute = step.minute;
-                step = myStep;
-            } else {
-                elephant = false;
-                step = state.copy();
-            }
-            if (max.total < myStep.total || max.total < step.total) {
-                max = myStep;
-            }
-        }
-        return max;
     }
 }
