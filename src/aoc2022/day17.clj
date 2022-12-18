@@ -139,8 +139,6 @@
         s (map-indexed (fn [row-idx row]
                          (map-indexed (fn [col-idx _]
                                         (do
-                                          ;(println (:points grid) [(- col-idx left-distance) (- row-idx oy)]  (contains? (:points grid) [(- col-idx left-distance) (- row-idx oy)]) )
-
                                           (cond
                                             (= col-idx 0) "|"
                                             (= col-idx (inc width)) "|"
@@ -149,7 +147,6 @@
                                             (contains? (set shape) [(- col-idx left-distance 1) (- row-idx (abs oy) margin)]) "@"
                                             :else "."
                                             ))
-
                                         ) row)) s)
         ]
     (str/join "\n" (mapv str/join s))
@@ -218,6 +215,8 @@
     ))
 
 (defn cycle-detect
+  "Detect cycle in infinite array by slow and fast pointers.
+  Slow pointer traverse 1x value but fast pointer traverse by 2x when they find subarray of given size that means cycle has been found."
   [array min-values-in-cycle]
   (loop [slow-pointer array
          i 0
