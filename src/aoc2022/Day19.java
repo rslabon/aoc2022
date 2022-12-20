@@ -100,7 +100,7 @@ public class Day19 {
 
         Blueprint blueprint1 = parseBlueprint(example1);
         Blueprint blueprint2 = parseBlueprint(example2);
-        List<Blueprint> examples = List.of(blueprint1);
+        List<Blueprint> examples = List.of(blueprint2);
 
         System.err.println(" part1=" + part1(examples));
     }
@@ -112,14 +112,15 @@ public class Day19 {
             cache.clear();
             maxSoFar.clear();
             TurnState turnState = new TurnState(new State(0, 0, 0, 0), new State(1, 0, 0, 0));
-            int maxGeode = findMaxGeode(0, blueprint, turnState, turnState);
+            int maxGeode = findMaxGeode(1, blueprint, turnState);
+            System.err.println(blueprint.id() + " max=" + maxGeode);
             byBlueprint.put(blueprint, maxGeode);
         }
 
         System.err.println(blueprints);
         int sum = 0;
         for (Map.Entry<Blueprint, Integer> e : byBlueprint.entrySet()) {
-            sum += e.getKey().id() * e.getValue();
+            sum += e.getValue();
         }
         return sum;
     }
@@ -127,7 +128,9 @@ public class Day19 {
     private static Map<Integer, Integer> maxSoFar = new HashMap<>();
     private static Map<List, Integer> cache = new HashMap<>();
 
-    private static int findMaxGeode(int minute, Blueprint blueprint, TurnState prev, TurnState turnState) {
+    private static int findMaxGeode(int minute, Blueprint blueprint, TurnState turnState) {
+        turnState = turnState.collect();
+
         if (cache.containsKey(List.of(minute, blueprint, turnState))) {
             return cache.get(List.of(minute, blueprint, turnState));
         }
@@ -135,27 +138,26 @@ public class Day19 {
         Integer maxTotal = maxSoFar.getOrDefault(minute, Integer.MIN_VALUE);
         maxTotal = Math.max(turnState.collected().geode(), maxTotal);
         maxSoFar.put(minute, maxTotal);
-        cache.put(List.of(minute, blueprint, turnState), turnState.collected().geode());
+        cache.put(List.of(minute, blueprint, turnState), Math.max(turnState.collected().geode(), cache.getOrDefault(List.of(minute, blueprint, turnState), Integer.MIN_VALUE)));
 
         if (minute == 24) {
-              System.err.println(turnState);
+            System.err.println(turnState);
             return turnState.collected().geode();
         }
 
         if (
-                turnState.collected().geode() < maxTotal ||
-//                (minute >= 22 && turnState.collected().geode() == 0) ||
-//                (minute >= 5 && turnState.robots().cly() == 0) ||
-//                (minute >= 18 && turnState.robots().obsidian() == 0) ||
+//                turnState.collected().geode() < maxTotal ||
+                (minute >= 22 && turnState.collected().geode() == 0) ||
+                        (minute >= 5 && turnState.robots().cly() == 0) ||
+                        (minute >= 18 && turnState.robots().obsidian() == 0) ||
                         (turnState.canBuildGeode(blueprint) && prev.canBuildGeode(blueprint) && turnState.robots().geode() == prev.robots().geode()) ||
                         (turnState.canBuildObsidian(blueprint) && prev.canBuildObsidian(blueprint) && turnState.robots().obsidian() == 0) ||
                         (turnState.canBuildCly(blueprint) && prev.canBuildCly(blueprint) && turnState.robots().cly() == 0)
         ) {
-            cache.put(List.of(minute, blueprint, turnState), Integer.MIN_VALUE);
+//            cache.put(List.of(minute, blueprint, prev, turnState), Integer.MIN_VALUE);
             return Integer.MIN_VALUE;
         }
 
-        minute++;
         int max = -1;
 //        if (turnState.canBuildGeode(blueprint)) {
 //            max = Math.max(max, xxx(minute, blueprint, turnState.collect().buildOGeodeRobot(blueprint)));
@@ -175,20 +177,20 @@ public class Day19 {
 //                max = Math.max(max, xxx(minute, blueprint, turnState.collect().buildOreRobot(blueprint)));
 //            }
 //        }
-        TurnState nextState = turnState.collect();
-        if (nextState.canBuildGeode(blueprint)) {
-            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, nextState.buildOGeodeRobot(blueprint)));
-        } else if (nextState.canBuildObsidian(blueprint) && turnState.robots().obsidian() == 0) {
-            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, nextState.buildObsidianRobot(blueprint)));
-        } else if (nextState.canBuildCly(blueprint) && turnState.robots().cly() == 0) {
-            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, nextState.buildClyRobot(blueprint)));
+
+        if (turnState.canBuildGeode(blueprint)) {
+            max = Math.max(max, findMaxGeode(minute + 1, blueprint, nextState.buildOGeodeRobot(blueprint)));
+        } else if (nextState.canBuildObsidian(blueprint) && nextState.robots().obsidian() == 0) {
+            max = Math.max(max, findMaxGeode(minute + 1, blueprint, turnState, nextState.buildObsidianRobot(blueprint)));
+        } else if (nextState.canBuildCly(blueprint) && nextState.robots().cly() == 0) {
+            max = Math.max(max, findMaxGeode(minute + 1, blueprint, turnState, nextState.buildClyRobot(blueprint)));
         } else {
-            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, nextState));
-            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, nextState.buildObsidianRobot(blueprint)));
-            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, nextState.buildClyRobot(blueprint)));
-            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, nextState.buildOreRobot(blueprint)));
+            max = Math.max(max, findMaxGeode(minute + 1, blueprint, prev, turnState));
+            max = Math.max(max, findMaxGeode(minute + 1, blueprint, turnState, nextState.buildObsidianRobot(blueprint)));
+            max = Math.max(max, findMaxGeode(minute + 1, blueprint, turnState, nextState.buildClyRobot(blueprint)));
+            max = Math.max(max, findMaxGeode(minute + 1, blueprint, turnState, nextState.buildOreRobot(blueprint)));
         }
-        cache.put(List.of(minute, blueprint, nextState), max);
+        //cache.put(List.of(minute, blueprint, nextState), max);
         maxTotal = Math.max(max, maxTotal);
         maxSoFar.put(minute, maxTotal);
         return max;
