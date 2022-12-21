@@ -84,25 +84,25 @@ public class Day21 {
 
     private static long part2(Map<String, Monkey> monkeys) {
         long start = 0;
-        long end = 5000_000_000_000L;
+        long end = 5_000_000_000_000_000L;
         Result first = guessHummNumber(0, monkeys);
 
         while (start < end) {
-            long mid = (start + end) / 2;
+            long mid = Math.divideExact(Math.addExact(start, end), 2);
             Result current = guessHummNumber(mid, monkeys);
             if (current.number != null) {
                 return current.number;
             } else if (first.left < first.right) {
                 if (current.left < current.right) {
-                    start = mid + 1;
+                    start = mid;
                 } else {
-                    end = mid - 1;
+                    end = mid;
                 }
             } else if (first.left > first.right) {
                 if (current.left > current.right) {
-                    start = mid + 1;
+                    start = mid;
                 } else {
-                    end = mid - 1;
+                    end = mid;
                 }
             }
         }
