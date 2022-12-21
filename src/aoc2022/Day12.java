@@ -1,5 +1,8 @@
 package aoc2022;
 
+import aoc2022.common.Coord;
+import aoc2022.common.Dijkstra;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -7,9 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-
-record Coord(int i, int j) {
-}
 
 public class Day12 {
 

@@ -1,14 +1,14 @@
 package aoc2022;
 
+import aoc2022.common.Dijkstra;
+import aoc2022.common.Pair;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-record Pair<LEFT, RIGHT>(LEFT left, RIGHT right) {
-}
 
 record Move(Valve from, Valve to, int path, double cost) {
 }

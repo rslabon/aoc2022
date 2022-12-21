@@ -1,9 +1,9 @@
-package aoc2022;
+package aoc2022.common;
 
 import java.util.Collections;
 import java.util.List;
 
-record Point(int x, int y) {
+public record Point(int x, int y) {
 
     public static List<Point> neighbours(Point p) {
         if (p.equals(new Point(0, 0))) {

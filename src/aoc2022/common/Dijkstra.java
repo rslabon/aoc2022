@@ -1,4 +1,4 @@
-package aoc2022;
+package aoc2022.common;
 
 import java.util.*;
 import java.util.function.Function;

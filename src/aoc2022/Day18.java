@@ -1,25 +1,13 @@
 package aoc2022;
 
+import aoc2022.common.Coord3D;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-record Cube(int x, int y, int z) {
-
-    public Set<Cube> potentialNeighbours() {
-        return Set.of(
-                new Cube(x - 1, y, z),
-                new Cube(x, y - 1, z),
-                new Cube(x, y, z - 1),
-                new Cube(x, y, z + 1),
-                new Cube(x, y + 1, z),
-                new Cube(x + 1, y, z)
-        );
-    }
-}
 
 public class Day18 {
     public static void main(String[] args) throws Exception {
@@ -39,21 +27,21 @@ public class Day18 {
 
         String input = Files.readString(Path.of("resources/day18.txt"));
 
-        Set<Cube> cubes = new HashSet<>();
+        Set<Coord3D> cubes = new HashSet<>();
         for (String line : input.split("\n")) {
             List<Integer> coords = Arrays.stream(line.split(",")).map(Integer::parseInt).toList();
-            Cube cube = new Cube(coords.get(0), coords.get(1), coords.get(2));
+            Coord3D cube = new Coord3D(coords.get(0), coords.get(1), coords.get(2));
             cubes.add(cube);
         }
 
         part1(cubes);
     }
 
-    private static void part1(Set<Cube> cubes) {
+    private static void part1(Set<Coord3D> cubes) {
         int area = 6 * cubes.size();
-        for (Cube c : cubes) {
+        for (Coord3D c : cubes) {
             int connected = 0;
-            for (Cube other : c.potentialNeighbours()) {
+            for (Coord3D other : c.potentialNeighbours()) {
                 if (cubes.contains(other)) {
                     connected++;
                 }

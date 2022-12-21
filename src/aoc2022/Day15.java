@@ -1,26 +1,15 @@
 package aoc2022;
 
 
+import aoc2022.common.Coord;
+import aoc2022.common.Range;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-record Range(int start, int end) {
-    boolean isValid() {
-        return start <= end;
-    }
-
-    public int size() {
-        return Math.abs(end - start);
-    }
-
-    public boolean intersect(Range other) {
-        return other.start <= end;
-    }
-}
 
 record Zone(Coord sensor, Coord beacon) {
 

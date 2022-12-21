@@ -93,6 +93,10 @@ record TurnState(State collected, State robots) {
 
 }
 
+enum BuildRobot {
+    NONE, ORE, CLY, OBSIDIAN, GEODE
+}
+
 public class Day19 {
     public static void main(String[] args) {
         String example1 = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.";
@@ -112,7 +116,7 @@ public class Day19 {
             cache.clear();
             maxSoFar.clear();
             TurnState turnState = new TurnState(new State(0, 0, 0, 0), new State(1, 0, 0, 0));
-            int maxGeode = findMaxGeode(1, blueprint, turnState);
+            int maxGeode = findMaxGeode(0, blueprint, turnState, BuildRobot.NONE);
             System.err.println(blueprint.id() + " max=" + maxGeode);
             byBlueprint.put(blueprint, maxGeode);
         }
@@ -125,74 +129,65 @@ public class Day19 {
         return sum;
     }
 
-    private static Map<Integer, Integer> maxSoFar = new HashMap<>();
-    private static Map<List, Integer> cache = new HashMap<>();
+    private static final Map<Integer, Integer> maxSoFar = new HashMap<>();
+    private static final Map<List, Integer> cache = new HashMap<>();
 
-    private static int findMaxGeode(int minute, Blueprint blueprint, TurnState turnState) {
+    private static int findMaxGeode(int minute, Blueprint blueprint, TurnState turnState, BuildRobot build) {
+        minute++;
         turnState = turnState.collect();
-
-        if (cache.containsKey(List.of(minute, blueprint, turnState))) {
-            return cache.get(List.of(minute, blueprint, turnState));
+        if (build == BuildRobot.GEODE) {
+            turnState = turnState.buildOGeodeRobot(blueprint);
+        } else if (build == BuildRobot.OBSIDIAN) {
+            turnState = turnState.buildObsidianRobot(blueprint);
+        } else if (build == BuildRobot.CLY) {
+            turnState = turnState.buildClyRobot(blueprint);
+        } else if (build == BuildRobot.ORE) {
+            turnState = turnState.buildOreRobot(blueprint);
         }
 
-        Integer maxTotal = maxSoFar.getOrDefault(minute, Integer.MIN_VALUE);
-        maxTotal = Math.max(turnState.collected().geode(), maxTotal);
-        maxSoFar.put(minute, maxTotal);
-        cache.put(List.of(minute, blueprint, turnState), Math.max(turnState.collected().geode(), cache.getOrDefault(List.of(minute, blueprint, turnState), Integer.MIN_VALUE)));
+        if (cache.containsKey(List.of(minute, blueprint, turnState, build))) {
+            return cache.get(List.of(minute, blueprint, turnState, build));
+        }
 
         if (minute == 24) {
             System.err.println(turnState);
+            cache.put(List.of(minute, blueprint, turnState, build), turnState.collected().geode());
             return turnState.collected().geode();
         }
 
+        Integer maxTotal = maxSoFar.getOrDefault(minute, Integer.MIN_VALUE);
         if (
-//                turnState.collected().geode() < maxTotal ||
-                (minute >= 22 && turnState.collected().geode() == 0) ||
-                        (minute >= 5 && turnState.robots().cly() == 0) ||
-                        (minute >= 18 && turnState.robots().obsidian() == 0) ||
-                        (turnState.canBuildGeode(blueprint) && prev.canBuildGeode(blueprint) && turnState.robots().geode() == prev.robots().geode()) ||
-                        (turnState.canBuildObsidian(blueprint) && prev.canBuildObsidian(blueprint) && turnState.robots().obsidian() == 0) ||
-                        (turnState.canBuildCly(blueprint) && prev.canBuildCly(blueprint) && turnState.robots().cly() == 0)
+                turnState.collected().geode() < maxTotal
+//                        (minute >= 22 && turnState.collected().geode() == 0) ||
+//                        (minute >= 5 && turnState.robots().cly() == 0) ||
+//                        (minute >= 18 && turnState.robots().obsidian() == 0)
+////                        (turnState.canBuildGeode(blueprint) && prev.canBuildGeode(blueprint) && turnState.robots().geode() == prev.robots().geode()) ||
+////                        (turnState.canBuildObsidian(blueprint) && prev.canBuildObsidian(blueprint) && turnState.robots().obsidian() == 0) ||
+////                        (turnState.canBuildCly(blueprint) && prev.canBuildCly(blueprint) && turnState.robots().cly() == 0)
         ) {
 //            cache.put(List.of(minute, blueprint, prev, turnState), Integer.MIN_VALUE);
-            return Integer.MIN_VALUE;
+            return turnState.collected().geode();
         }
 
         int max = -1;
-//        if (turnState.canBuildGeode(blueprint)) {
-//            max = Math.max(max, xxx(minute, blueprint, turnState.collect().buildOGeodeRobot(blueprint)));
-//        } else if (turnState.canBuildObsidian(blueprint) && turnState.robots().obsidian() == 0) {
-//            max = Math.max(max, xxx(minute, blueprint, turnState.collect().buildObsidianRobot(blueprint)));
-//        } else if (turnState.canBuildCly(blueprint) && turnState.robots().cly() == 0) {
-//            max = Math.max(max, xxx(minute, blueprint, turnState.collect().buildClyRobot(blueprint)));
-//        } else {
-//            max = Math.max(max, xxx(minute, blueprint, turnState.collect()));
-//            if (turnState.canBuildObsidian(blueprint)) {
-//                max = Math.max(max, xxx(minute, blueprint, turnState.collect().buildObsidianRobot(blueprint)));
-//            }
-//            if (turnState.canBuildCly(blueprint)) {
-//                max = Math.max(max, xxx(minute, blueprint, turnState.collect().buildClyRobot(blueprint)));
-//            }
-//            if (turnState.canBuildOre(blueprint)) {
-//                max = Math.max(max, xxx(minute, blueprint, turnState.collect().buildOreRobot(blueprint)));
-//            }
-//        }
-
         if (turnState.canBuildGeode(blueprint)) {
-            max = Math.max(max, findMaxGeode(minute + 1, blueprint, nextState.buildOGeodeRobot(blueprint)));
-        } else if (nextState.canBuildObsidian(blueprint) && nextState.robots().obsidian() == 0) {
-            max = Math.max(max, findMaxGeode(minute + 1, blueprint, turnState, nextState.buildObsidianRobot(blueprint)));
-        } else if (nextState.canBuildCly(blueprint) && nextState.robots().cly() == 0) {
-            max = Math.max(max, findMaxGeode(minute + 1, blueprint, turnState, nextState.buildClyRobot(blueprint)));
+            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, BuildRobot.GEODE));
         } else {
-            max = Math.max(max, findMaxGeode(minute + 1, blueprint, prev, turnState));
-            max = Math.max(max, findMaxGeode(minute + 1, blueprint, turnState, nextState.buildObsidianRobot(blueprint)));
-            max = Math.max(max, findMaxGeode(minute + 1, blueprint, turnState, nextState.buildClyRobot(blueprint)));
-            max = Math.max(max, findMaxGeode(minute + 1, blueprint, turnState, nextState.buildOreRobot(blueprint)));
+            int left = 24 - minute;
+            if (turnState.canBuildObsidian(blueprint)) {
+                max = Math.max(max, findMaxGeode(minute, blueprint, turnState, BuildRobot.OBSIDIAN));
+            }
+            if (turnState.canBuildCly(blueprint)) {
+                max = Math.max(max, findMaxGeode(minute, blueprint, turnState, BuildRobot.CLY));
+            }
+            if (turnState.canBuildOre(blueprint)) {
+                max = Math.max(max, findMaxGeode(minute, blueprint, turnState, BuildRobot.ORE));
+            }
+            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, BuildRobot.NONE));
         }
-        //cache.put(List.of(minute, blueprint, nextState), max);
+//        cache.put(List.of(minute, blueprint, turnState, build), max);
         maxTotal = Math.max(max, maxTotal);
-        maxSoFar.put(minute, maxTotal);
+        maxSoFar.put(24 - minute, maxTotal);
         return max;
     }
 
