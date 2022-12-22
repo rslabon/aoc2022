@@ -42,21 +42,8 @@ enum Direction {
 }
 
 record Position(int i, int j, Direction d) {
-    public Position move(World world) {
-        Position p = new Position(i + d.dx, j + d.dy, d);
-        if (p.i < 0) {
-            p = new Position(world.height() - 1, p.j, d);
-        }
-        if (p.j < 0) {
-            p = new Position(p.i, world.width() - 1, d);
-        }
-        if (p.i >= world.height()) {
-            p = new Position(0, p.j, d);
-        }
-        if (p.j >= world.width()) {
-            p = new Position(p.i, 0, d);
-        }
-        return p;
+    public Position move() {
+        return new Position(i + d.dx, j + d.dy, d);
     }
 
     public Position turnRight() {
@@ -68,16 +55,43 @@ record Position(int i, int j, Direction d) {
     }
 }
 
+interface FoldingStrategy {
+    Position fold(Position p, World w);
+}
+
+class Part1Folding implements FoldingStrategy {
+
+    @Override
+    public Position fold(Position p, World w) {
+        if (p.i() < 0) {
+            p = new Position(w.height() - 1, p.j(), p.d());
+        }
+        if (p.j() < 0) {
+            p = new Position(p.i(), w.width() - 1, p.d());
+        }
+        if (p.i() >= w.height()) {
+            p = new Position(0, p.j(), p.d());
+        }
+        if (p.j() >= w.width()) {
+            p = new Position(p.i(), 0, p.d());
+        }
+        return p;
+    }
+}
+
 class World {
     private Cell[][] world;
     private List<Position> path = new ArrayList<>();
 
-    public World(Cell[][] world) {
+    private FoldingStrategy foldingStrategy;
+
+    public World(Cell[][] world, FoldingStrategy foldingStrategy) {
         this.world = world;
+        this.foldingStrategy = foldingStrategy;
         this.path.add(findStartingPosition());
     }
 
-    public static World parseWorld(String input) {
+    public static World parseWorld(String input, FoldingStrategy foldingStrategy) {
         String[] lines = input.split("\n");
         int width = Arrays.stream(lines).map(String::length).max(Integer::compareTo).get();
         int height = lines.length;
@@ -100,7 +114,7 @@ class World {
             i++;
             j = 0;
         }
-        return new World(world);
+        return new World(world, foldingStrategy);
     }
 
     public int width() {
@@ -175,7 +189,7 @@ class World {
     private void moveCurrentPosition(int steps) {
         Position p = currentPosition();
         for (int step = 0; step < steps; ) {
-            p = p.move(this);
+            p = foldingStrategy.fold(p.move(), this);
             Cell c = cellAt(p);
             if (c == Cell.OPEN) {
                 setCurrentPosition(p);
@@ -244,13 +258,13 @@ public class Day22 {
                 "\n" +
                 "10R5L5R10L4R5L5";
 
-        System.err.println(" part1=" + part1(puzzleInput));
+        System.err.println(" part1=" + part1(puzzleInput));//20494
 
     }
 
     private static int part1(String input) {
         String[] parts = input.split("\n\n");
-        World world = World.parseWorld(parts[0]);
+        World world = World.parseWorld(parts[0], new Part1Folding());
         System.err.println(world);
         System.err.println("\n****************************************************\n");
         world.execute(parts[1].trim());
