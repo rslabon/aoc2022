@@ -79,6 +79,76 @@ class Part1Folding implements FoldingStrategy {
     }
 }
 
+class HackingPart2Folding implements FoldingStrategy {
+
+    int size = 50;
+
+    private boolean inRange(int x, int from) {
+        return x >= from && x < from + size;
+    }
+
+    @Override
+    public Position fold(Position p, World w) {
+        if (p.i() < 0 && inRange(p.j(), size) && p.d() == Direction.UP) {
+//            1 UP -> 6 RIGHT
+            return new Position(3 * size + p.j() % size, 0, Direction.RIGHT);
+        }
+        if (p.j() < size && inRange(p.i(), 0) && p.d() == Direction.LEFT) {
+//            1 LEFT -> 4 RIGHT
+            return new Position(2 * size + size - p.i() - 1, 0, Direction.RIGHT);
+        }
+        if (p.i() < 0 && inRange(p.j(), 2 * size) && p.d() == Direction.UP) {
+//            2 UP -> 6 UP
+            return new Position(4 * size - 1, p.j() % size, Direction.UP);
+        }
+        if (p.i() > size - 1 && inRange(p.j(), 2 * size) && p.d() == Direction.DOWN) {
+//            2 DOWN -> 3 LEFT
+            return new Position(size + p.j() % size, 2 * size - 1, Direction.LEFT);
+        }
+        if (p.j() > 3 * size - 1 && inRange(p.i(), 0) && p.d() == Direction.RIGHT) {
+//            2 RIGHT -> 5 LEFT
+            return new Position(2 * size + size - p.i() - 1, 2 * size - 1, Direction.LEFT);
+        }
+        if (p.j() > 2 * size - 1 && inRange(p.i(), size) && p.d() == Direction.RIGHT) {
+//            3 RIGHT -> 2 UP
+            return new Position(size - 1, 2 * size + p.i() % size, Direction.UP);
+        }
+        if (p.j() < size && inRange(p.i(), size) && p.d() == Direction.LEFT) {
+//            3 LEFT -> 4 DOWN
+            return new Position(2 * size, p.i() % size, Direction.DOWN);
+        }
+        if (p.i() < 2 * size && inRange(p.j(), 0) && p.d() == Direction.UP) {
+//            4 UP -> 3 RIGHT
+            return new Position(size + p.j(), size, Direction.RIGHT);
+        }
+        if (p.j() < 0 && inRange(p.i(), 2 * size) && p.d() == Direction.LEFT) {
+//            4 LEFT -> 1 RIGHT
+            return new Position(size - 1 - p.i() % size, size, Direction.RIGHT);
+        }
+        if (p.j() > 2 * size - 1 && inRange(p.i(), 2 * size) && p.d() == Direction.RIGHT) {
+//            5 RIGHT -> 2 LEFT
+            return new Position(size - 1 - p.i() % size, 3 * size - 1, Direction.LEFT);
+        }
+        if (p.i() > 3 * size - 1 && inRange(p.j(), size) && p.d() == Direction.DOWN) {
+//            5 DOWN -> 6 LEFT
+            return new Position(3 * size + p.j() % size, size - 1, Direction.LEFT);
+        }
+        if (p.j() < 0 && inRange(p.i(), 3 * size) && p.d() == Direction.LEFT) {
+//            6 LEFT -> 1 DOWN
+            return new Position(0, size + p.i() % size, Direction.DOWN);
+        }
+        if (p.i() > 4 * size - 1 && inRange(p.j(), 0) && p.d() == Direction.DOWN) {
+//            6 DOWN -> 2 DOWN
+            return new Position(0, 2 * size + p.j(), Direction.DOWN);
+        }
+        if (p.j() > size - 1 && inRange(p.i(), 3 * size) && p.d() == Direction.RIGHT) {
+//            6 RIGHT -> 5 UP
+            return new Position(3 * size - 1, size + p.i() % size, Direction.UP);
+        }
+        return p;
+    }
+}
+
 class World {
     private Cell[][] world;
     private List<Position> path = new ArrayList<>();
@@ -189,7 +259,8 @@ class World {
     private void moveCurrentPosition(int steps) {
         Position p = currentPosition();
         for (int step = 0; step < steps; ) {
-            p = foldingStrategy.fold(p.move(), this);
+            p = p.move();
+            p = foldingStrategy.fold(p, this);
             Cell c = cellAt(p);
             if (c == Cell.OPEN) {
                 setCurrentPosition(p);
@@ -259,12 +330,24 @@ public class Day22 {
                 "10R5L5R10L4R5L5";
 
         System.err.println(" part1=" + part1(puzzleInput));//20494
+        System.err.println(" part2=" + part2(puzzleInput));//55343
 
     }
 
     private static int part1(String input) {
         String[] parts = input.split("\n\n");
         World world = World.parseWorld(parts[0], new Part1Folding());
+        System.err.println(world);
+        System.err.println("\n****************************************************\n");
+        world.execute(parts[1].trim());
+        System.err.println(world);
+        return world.finalPassword();
+    }
+
+    //!!!!!!!!!!!!!!!!!!HACKING!!!!!!!!!!!!!!!!!! ONLY FOR MY INPUT
+    private static int part2(String input) {
+        String[] parts = input.split("\n\n");
+        World world = World.parseWorld(parts[0], new HackingPart2Folding());
         System.err.println(world);
         System.err.println("\n****************************************************\n");
         world.execute(parts[1].trim());
