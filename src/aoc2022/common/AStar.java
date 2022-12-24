@@ -1,7 +1,5 @@
 package aoc2022.common;
 
-import aoc2022.common.Point;
-
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;

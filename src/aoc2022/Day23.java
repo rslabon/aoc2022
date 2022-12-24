@@ -50,7 +50,7 @@ class Day23World {
     public boolean makeRound() {
         Map<Coord, List<Coord>> stepToElfs = new HashMap<>();
         for (Coord elf : elfsPositions) {
-            boolean noElfsAround = canMove(elf.adj());
+            boolean noElfsAround = canMove(elf.adj8());
             if (noElfsAround) {
                 stepToElfs.put(elf, List.of(elf));
             } else {
