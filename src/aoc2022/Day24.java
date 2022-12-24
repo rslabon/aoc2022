@@ -107,7 +107,7 @@ class Valley {
     }
 
     public int travel(int minute, Coord start, Coord end, List<Set<Coord>> openPerMinute) {
-        Queue<Coord> possibleSoFar = new PriorityQueue<>(Comparator.comparingInt(o -> o.manhatanDistance(end)));
+        Queue<Coord> possibleSoFar = new LinkedList<>();
         possibleSoFar.add(start);
         int cycle = openPerMinute.size();
         while (true) {
