@@ -56,6 +56,9 @@ class Valley {
     private final Set<Coord> open;
     private final Set<Coord> wall;
 
+    private int width = -1;
+    private int height = -1;
+
     public Valley(Set<Coord> open, Set<Coord> wall) {
         this.open = open;
         this.wall = wall;
@@ -102,31 +105,32 @@ class Valley {
         return new Coord(height() - 1, width() - 2);
     }
 
-    public int travel(int step, Coord start, Coord end, List<Set<Coord>> openPerMinute) {
-        Set<Coord> possible = new HashSet<>();
+    public int travel(int minute, Coord start, Coord end, List<Set<Coord>> openPerMinute) {
+        Queue<Coord> possible = new PriorityQueue<>(Comparator.comparingInt(o -> o.manhatanDistance(end)));
         possible.add(start);
         int cycle = openPerMinute.size();
         while (true) {
             Set<Coord> targets = new HashSet<>();
-            for (Coord current : possible) {
-                Set<Coord> safe = openPerMinute.get(step % cycle);
+            while (!possible.isEmpty()) {
+                Coord current = possible.poll();
+                Set<Coord> open = openPerMinute.get(minute % cycle);
                 Set<Coord> nextMove = new HashSet<>(current.adj4());
                 nextMove.add(current);
-                nextMove.retainAll(safe);
+                nextMove.retainAll(open);
                 if (nextMove.contains(end)) {
-                    return step;
+                    return minute;
                 }
                 targets.addAll(nextMove);
             }
-            possible = targets;
-            step++;
+            possible.addAll(targets);
+            minute++;
         }
     }
 
     public List<Set<Coord>> openPerMinute() {
         List<Set<Coord>> safe = new ArrayList<>();
         Set<Coord> openNow = new HashSet<>(open);
-        Set<Coord> blizzardCoords = blizzards.stream().map(blizz -> new Coord(blizz.i, blizz.j)).collect(Collectors.toSet());
+        Set<Coord> blizzardCoords = getBlizzardCoords();
         openNow.removeAll(blizzardCoords);
         safe.add(openNow);
 
@@ -134,7 +138,7 @@ class Valley {
             for (Blizzard b : blizzards) {
                 b.move(this);
             }
-            blizzardCoords = blizzards.stream().map(blizz -> new Coord(blizz.i, blizz.j)).collect(Collectors.toSet());
+            blizzardCoords = getBlizzardCoords();
             openNow = new HashSet<>(open);
             openNow.removeAll(blizzardCoords);
             safe.add(openNow);
@@ -142,12 +146,22 @@ class Valley {
         return safe;
     }
 
+    private Set<Coord> getBlizzardCoords() {
+        return blizzards.stream().map(blizz -> new Coord(blizz.i, blizz.j)).collect(Collectors.toSet());
+    }
+
     public int width() {
-        return wall.stream().map(Coord::j).max(Integer::compareTo).get() + 1;
+        if (width < 0) {
+            width = wall.stream().map(Coord::j).max(Integer::compareTo).get() + 1;
+        }
+        return width;
     }
 
     public int height() {
-        return wall.stream().map(Coord::i).max(Integer::compareTo).get() + 1;
+        if (height < 0) {
+            height = wall.stream().map(Coord::i).max(Integer::compareTo).get() + 1;
+        }
+        return height;
     }
 }
 
