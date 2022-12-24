@@ -8,7 +8,7 @@ public record Coord(int i, int j) {
         return Math.abs(other.i - i) + Math.abs(other.j - j);
     }
 
-    public Set<Coord> adj8() {
+    public Set<Coord> neighboursOrthogonalAndDiagonal() {
         return Set.of(
                 new Coord(i - 1, j),
                 new Coord(i + 1, j),
@@ -21,7 +21,7 @@ public record Coord(int i, int j) {
         );
     }
 
-    public Set<Coord> adj4() {
+    public Set<Coord> neighboursOrthogonal() {
         return Set.of(
                 new Coord(i - 1, j),
                 new Coord(i + 1, j),

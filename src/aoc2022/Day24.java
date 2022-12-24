@@ -115,7 +115,7 @@ class Valley {
             while (!possibleSoFar.isEmpty()) {
                 Coord current = possibleSoFar.poll();
                 Set<Coord> open = openPerMinute.get(minute % cycle);
-                Set<Coord> nextMove = new HashSet<>(current.adj4());
+                Set<Coord> nextMove = new HashSet<>(current.neighboursOrthogonal());
                 nextMove.add(current);
                 nextMove.retainAll(open);
                 if (nextMove.contains(end)) {
