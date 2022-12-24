@@ -35,10 +35,6 @@ class Blizzard {
         }
     }
 
-    public Blizzard copy() {
-        return new Blizzard(i, j, d);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
