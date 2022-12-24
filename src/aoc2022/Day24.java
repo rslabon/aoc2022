@@ -2,6 +2,7 @@ package aoc2022;
 
 import aoc2022.common.Coord;
 import aoc2022.common.Direction;
+import aoc2022.common.Perf;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -184,16 +185,18 @@ public class Day24 {
                 "######.#";
 
         String puzzleInput = Files.readString(Path.of("resources/day24.txt"));
-
         Valley valley = Valley.parse(puzzleInput);
 
-        List<Set<Coord>> openPerMinute = valley.openPerMinute();
+        Perf.time(() -> {
+            List<Set<Coord>> openPerMinute = valley.openPerMinute();
 
-        int startToEnd = valley.travel(0, valley.getExpedition(), valley.getFinalTarget(), openPerMinute);
-        System.err.println(" part1=" + startToEnd);
+            int startToEnd = valley.travel(0, valley.getExpedition(), valley.getFinalTarget(), openPerMinute);
+            System.err.println(" part1=" + startToEnd);
 
-        int endToStart = valley.travel(startToEnd, valley.getFinalTarget(), valley.getExpedition(), openPerMinute);
-        int finalToEnd = valley.travel(endToStart, valley.getExpedition(), valley.getFinalTarget(), openPerMinute);
-        System.err.println(" part2=" + finalToEnd);
+            int endToStart = valley.travel(startToEnd, valley.getFinalTarget(), valley.getExpedition(), openPerMinute);
+            int finalToEnd = valley.travel(endToStart, valley.getExpedition(), valley.getFinalTarget(), openPerMinute);
+            System.err.println(" part2=" + finalToEnd);
+            return null;
+        });
     }
 }
