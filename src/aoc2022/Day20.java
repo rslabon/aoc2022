@@ -26,10 +26,10 @@ public class Day20 {
                 .stream().map(Integer::parseInt).toList();
 
         System.err.println("part1=" + part1(example));
-        System.err.println("part1=" + part1(puzzleInput));
+        System.err.println("part1=" + part1(puzzleInput));//7395
 
-        System.err.println("part1=" + part2(example));
-        System.err.println("part1=" + part2(puzzleInput));
+        System.err.println("part2=" + part2(example));
+        System.err.println("part2=" + part2(puzzleInput));//1640221678213
     }
 
     private static long part1(List<Integer> values) {

@@ -74,9 +74,9 @@ class Day23World {
         List<Coord> first = directions.remove(0);
         directions.add(first);
 
-        boolean noMove = elfsPositions.equals(newElfsPositions);
+        boolean noOneMoved = elfsPositions.equals(newElfsPositions);
         elfsPositions = newElfsPositions;
-        return noMove;
+        return noOneMoved;
     }
 
     private Coord proposeStep(Coord elf, List<List<Coord>> direction) {
