@@ -4,10 +4,7 @@ import aoc2022.common.Coord3D;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Day18 {
     public static void main(String[] args) throws Exception {
@@ -35,6 +32,7 @@ public class Day18 {
         }
 
         part1(cubes);
+        part2(cubes);
     }
 
     private static void part1(Set<Coord3D> cubes) {
@@ -50,4 +48,41 @@ public class Day18 {
         }
         System.err.println(area);
     }
+
+    private static void part2(Set<Coord3D> cubes) {
+        int minX = cubes.stream().map(Coord3D::x).min(Integer::compareTo).get() - 1;
+        int minY = cubes.stream().map(Coord3D::y).min(Integer::compareTo).get() - 1;
+        int minZ = cubes.stream().map(Coord3D::z).min(Integer::compareTo).get() - 1;
+
+        int maxX = cubes.stream().map(Coord3D::x).max(Integer::compareTo).get() + 1;
+        int maxY = cubes.stream().map(Coord3D::y).max(Integer::compareTo).get() + 1;
+        int maxZ = cubes.stream().map(Coord3D::z).max(Integer::compareTo).get() + 1;
+
+
+        Set<Coord3D> air = new HashSet<>();
+        air.add(new Coord3D(minX, minY, minZ));
+        Queue<Coord3D> q = new LinkedList<>();
+        q.add(new Coord3D(minX, minY, minZ));
+
+        int area = 0;
+        while (!q.isEmpty()) {
+            Coord3D current = q.poll();
+            for (Coord3D next : current.potentialNeighbours()) {
+                if (next.x() > maxX || next.y() > maxY || next.z() > maxZ || next.x() < minX || next.y() < minY || next.z() < minZ) {
+                    continue;
+                }
+                if (cubes.contains(next)) {
+                    area++;
+                }
+                if (air.contains(next) || cubes.contains(next)) {
+                    continue;
+                }
+                q.add(next);
+                air.add(next);
+            }
+        }
+        System.err.println(area);
+    }
+
+
 }
