@@ -1,16 +1,26 @@
 package aoc2022;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 
 record RobotCost(int ore, int cly, int obsidian) {
 }
 
 record Blueprint(int id, RobotCost ore, RobotCost cly, RobotCost obsidian, RobotCost geode) {
+    public RobotCost maxSpendPerMinute() {
+        return new RobotCost(
+                Stream.of(ore.ore(), cly().ore(), obsidian.ore(), geode.ore()).max(Integer::compareTo).get(),
+                obsidian.cly(),
+                geode().obsidian()
+        );
+    }
 }
 
 record State(int ore, int cly, int obsidian, int geode) {
@@ -89,105 +99,110 @@ record TurnState(State collected, State robots) {
     public boolean canBuildGeode(Blueprint blueprint) {
         return collected.ore() >= blueprint.geode().ore() && collected.obsidian() >= blueprint.geode().obsidian();
     }
-
-
 }
 
-enum BuildRobot {
+enum Robot {
     NONE, ORE, CLY, OBSIDIAN, GEODE
 }
 
 public class Day19 {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         String example1 = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.";
         String example2 = "Blueprint 2: Each ore robot costs 2 ore. Each clay robot costs 3 ore. Each obsidian robot costs 3 ore and 8 clay. Each geode robot costs 3 ore and 12 obsidian.";
 
         Blueprint blueprint1 = parseBlueprint(example1);
         Blueprint blueprint2 = parseBlueprint(example2);
-        List<Blueprint> examples = List.of(blueprint2);
+//        List<Blueprint> blueprints = List.of(blueprint1, blueprint2);
 
-        System.err.println(" part1=" + part1(examples));
+        List<Blueprint> blueprints = Files.readAllLines(Path.of("resources/day19.txt"))
+                .stream()
+                .filter(s -> !s.isBlank())
+                .map(Day19::parseBlueprint)
+                .toList();
+
+        System.err.println(" part1=" + part1(blueprints));
+        System.err.println(" part2=" + part2(blueprints));
     }
 
     private static int part1(List<Blueprint> blueprints) {
         Map<Blueprint, Integer> byBlueprint = new HashMap<>();
         for (Blueprint blueprint : blueprints) {
             System.err.println("Processing blueprint id=" + blueprint.id());
-            cache.clear();
-            maxSoFar.clear();
             TurnState turnState = new TurnState(new State(0, 0, 0, 0), new State(1, 0, 0, 0));
-            int maxGeode = findMaxGeode(0, blueprint, turnState, BuildRobot.NONE);
-            System.err.println(blueprint.id() + " max=" + maxGeode);
-            byBlueprint.put(blueprint, maxGeode);
+            int geode = findMaxGeode(new HashMap<>(), 24, blueprint, turnState, Robot.NONE);
+            byBlueprint.put(blueprint, geode);
+            System.err.println(blueprint.id() + " = " + geode);
         }
 
-        System.err.println(blueprints);
         int sum = 0;
         for (Map.Entry<Blueprint, Integer> e : byBlueprint.entrySet()) {
-            sum += e.getValue();
+            sum += e.getKey().id() * e.getValue();
         }
         return sum;
     }
 
-    private static final Map<Integer, Integer> maxSoFar = new HashMap<>();
-    private static final Map<List, Integer> cache = new HashMap<>();
+    private static long part2(List<Blueprint> blueprints) {
+        Map<Blueprint, Integer> byBlueprint = new HashMap<>();
+        for (Blueprint blueprint : blueprints) {
+            System.err.println("Processing blueprint id=" + blueprint.id());
+            TurnState turnState = new TurnState(new State(0, 0, 0, 0), new State(1, 0, 0, 0));
+            int geode = findMaxGeode(new HashMap<>(), 32, blueprint, turnState, Robot.NONE);
+            byBlueprint.put(blueprint, geode);
+            System.err.println(blueprint.id() + " = " + geode);
+        }
 
-    private static int findMaxGeode(int minute, Blueprint blueprint, TurnState turnState, BuildRobot build) {
-        minute++;
+        long mul = 1;
+        for (Map.Entry<Blueprint, Integer> e : byBlueprint.entrySet()) {
+            mul *= e.getValue();
+        }
+        return mul;
+    }
+
+    private static int maxSoFar = -10;
+
+
+    private static int findMaxGeode(Map<List, Integer> cache, int minute, Blueprint blueprint, TurnState turnState, Robot build) {
+        minute--;
         turnState = turnState.collect();
-        if (build == BuildRobot.GEODE) {
+        if (build == Robot.GEODE) {
             turnState = turnState.buildOGeodeRobot(blueprint);
-        } else if (build == BuildRobot.OBSIDIAN) {
+        } else if (build == Robot.OBSIDIAN) {
             turnState = turnState.buildObsidianRobot(blueprint);
-        } else if (build == BuildRobot.CLY) {
+        } else if (build == Robot.CLY) {
             turnState = turnState.buildClyRobot(blueprint);
-        } else if (build == BuildRobot.ORE) {
+        } else if (build == Robot.ORE) {
             turnState = turnState.buildOreRobot(blueprint);
         }
 
-        if (cache.containsKey(List.of(minute, blueprint, turnState, build))) {
-            return cache.get(List.of(minute, blueprint, turnState, build));
+        List<Object> cacheKey = List.of(minute, blueprint, turnState);
+        if (cache.containsKey(cacheKey)) {
+            return cache.get(cacheKey);
         }
 
-        if (minute == 24) {
-            System.err.println(turnState);
-            cache.put(List.of(minute, blueprint, turnState, build), turnState.collected().geode());
-            return turnState.collected().geode();
-        }
-
-        Integer maxTotal = maxSoFar.getOrDefault(minute, Integer.MIN_VALUE);
-        if (
-                turnState.collected().geode() < maxTotal
-//                        (minute >= 22 && turnState.collected().geode() == 0) ||
-//                        (minute >= 5 && turnState.robots().cly() == 0) ||
-//                        (minute >= 18 && turnState.robots().obsidian() == 0)
-////                        (turnState.canBuildGeode(blueprint) && prev.canBuildGeode(blueprint) && turnState.robots().geode() == prev.robots().geode()) ||
-////                        (turnState.canBuildObsidian(blueprint) && prev.canBuildObsidian(blueprint) && turnState.robots().obsidian() == 0) ||
-////                        (turnState.canBuildCly(blueprint) && prev.canBuildCly(blueprint) && turnState.robots().cly() == 0)
-        ) {
-//            cache.put(List.of(minute, blueprint, prev, turnState), Integer.MIN_VALUE);
+        if (minute == 0) {
+            if (maxSoFar < turnState.collected().geode()) {
+                System.err.println("new max = " + turnState.collected().geode());
+            }
+            maxSoFar = Math.max(maxSoFar, turnState.collected().geode());
             return turnState.collected().geode();
         }
 
         int max = -1;
         if (turnState.canBuildGeode(blueprint)) {
-            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, BuildRobot.GEODE));
+            max = Math.max(max, findMaxGeode(cache, minute, blueprint, turnState, Robot.GEODE));
         } else {
-            int left = 24 - minute;
-            if (turnState.canBuildObsidian(blueprint)) {
-                max = Math.max(max, findMaxGeode(minute, blueprint, turnState, BuildRobot.OBSIDIAN));
+            if (blueprint.maxSpendPerMinute().obsidian() > turnState.robots().obsidian() && turnState.canBuildObsidian(blueprint)) {
+                max = Math.max(max, findMaxGeode(cache, minute, blueprint, turnState, Robot.OBSIDIAN));
             }
-            if (turnState.canBuildCly(blueprint)) {
-                max = Math.max(max, findMaxGeode(minute, blueprint, turnState, BuildRobot.CLY));
+            if (blueprint.maxSpendPerMinute().cly() > turnState.robots().cly() && turnState.canBuildCly(blueprint)) {
+                max = Math.max(max, findMaxGeode(cache, minute, blueprint, turnState, Robot.CLY));
             }
-            if (turnState.canBuildOre(blueprint)) {
-                max = Math.max(max, findMaxGeode(minute, blueprint, turnState, BuildRobot.ORE));
+            if (blueprint.maxSpendPerMinute().ore() > turnState.robots().ore() && turnState.canBuildOre(blueprint)) {
+                max = Math.max(max, findMaxGeode(cache, minute, blueprint, turnState, Robot.ORE));
             }
-            max = Math.max(max, findMaxGeode(minute, blueprint, turnState, BuildRobot.NONE));
+            max = Math.max(max, findMaxGeode(cache, minute, blueprint, turnState, Robot.NONE));
         }
-//        cache.put(List.of(minute, blueprint, turnState, build), max);
-        maxTotal = Math.max(max, maxTotal);
-        maxSoFar.put(24 - minute, maxTotal);
+        cache.put(cacheKey, max);
         return max;
     }
 
